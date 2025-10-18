@@ -1,0 +1,14 @@
+--epochs=100
+--batch_size=8
+--cuda=True
+--gpu_num=0
+--seed=1656079
+--Dataset=INbreast
+--num_views=2
+--lr=0.00001
+--optim=Adam
+--model=phcresnet18
+--n=2
+--train_dir=/content/drive/MyDrive/INBreast/inbreast_2views_train_val/torch_saved
+--model_state=/content/drive/MyDrive/INBreast/PretrainedModelWeights/phresnet18_inbreast2views.pt
+--evaluate_model=True
