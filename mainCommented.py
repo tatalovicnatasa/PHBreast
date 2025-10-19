@@ -77,7 +77,7 @@ def main(rank, world_size, opt):
     if opt.evaluate_model: # EVALUACIJA
         if dataset != 'CBIS_patches' and num_views == 2: # nije pretreniranje u pitanju
             net.add_top_blocks(num_classes=num_classes) # dodavanje top blokova    
-        net.load_state_dict(torch.load(opt.model_state, map_location='cpu')) # ucitavanje tezina ipak 
+        net.load_state_dict(torch.load(opt.model_state, map_location='cpu')) # ucitavanje tezina ipak od pretreniranog enkodera
         
     else:
         # Load pretrained weights.
@@ -163,9 +163,9 @@ if __name__ == '__main__':
     
     parser.add_argument('--TextArgs', type=str, default='TrainingArguments.txt', help='Path to text with training settings')
 
-    parse_list=readFile(parser.parse_args().TextArgs)
+    parse_list=readFile(parser.parse_args().TextArgs) # cita config file 
     
-    opt = parser.parse_args(parse_list)
+    opt = parser.parse_args(parse_list) # parsuje argumente i kreira opt objekat, kontejner za sve parametre 
     
     if opt.distributed:
         opt.gpu_nums = list(map(int, opt.gpu_nums.split()))
