@@ -5,14 +5,14 @@ import argparse
 import numpy as np
 import torch
 import torch.optim as optim
-import wandb
+import wandb # tracking experimetns online
 import os
 import random
 from multiprocessing import cpu_count
-from GetModel import GetModel
-from training import Trainer
-from utils.dataloaders import MyDataLoader
-from utils.readFile import readFile
+from GetModel import GetModel # function that implements the model from GetModel.py 
+from training import Trainer  # class for training or evaluation from Trainer.py
+from utils.dataloaders import MyDataLoader # for datas from dataloaders.py
+from utils.readFile import readFile #from readFile.py
 
 def setup(rank, world_size, opt):
     torch.cuda.set_device(opt.gpu_nums[rank])
@@ -24,11 +24,12 @@ def setup(rank, world_size, opt):
 def cleanup():
     dist.destroy_process_group()
 
-def main(rank, world_size, opt):
+def main(rank, world_size, opt): 
+    # Setting the GPU 
     if opt.distributed:
-        gpu_num = opt.gpu_nums[rank]
+        gpu_num = opt.gpu_nums[rank] # more GPUs
     else:
-        gpu_num = opt.gpu_num
+        gpu_num = opt.gpu_num # one GPU
     
     use_cuda = opt.cuda
    
@@ -54,35 +55,35 @@ def main(rank, world_size, opt):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
     
-    model = opt.model
-    n = opt.n
+    model = opt.model # ex. phcresnet18 
+    n = opt.n         # hipercomplex parameter
     train_dir = opt.train_dir
     num_views = opt.num_views
     
-    if dataset == 'CBIS' or dataset == 'INbreast':
-        num_classes = 1
+    if dataset == 'CBIS' or dataset == 'INbreast': # based on dataset provided
+        num_classes = 1 # binary classification
     elif dataset == 'CBIS_patches':
-        num_classes = 5
+        num_classes = 5 # this is pretraining and it needs 5 classed
     else:
         RuntimeError('Wrong dataset or not implemented')
     
     train_loader, eval_loader = MyDataLoader(root=train_dir, name=dataset, batch_size=batch_size, num_workers=n_workers, 
                                              distributed=opt.distributed, rank=rank, world_size=world_size)
     
-    pretrained_weights = None if opt.evaluate_model else opt.model_state # ako evaluira model, ne ucitava pretrenirane 
+    pretrained_weights = None if opt.evaluate_model else opt.model_state # ako evaluira model, ne ucitava pretrenirane ali hoce posle 
     net = GetModel(str_model=model, n=n, num_classes=num_classes, weights=pretrained_weights,   # prosledjuju se tezine
                     shared=opt.shared, patch_weights=opt.patch_weights)  
     
-    if opt.evaluate_model: 
-        if dataset != 'CBIS_patches' and num_views == 2:
-            net.add_top_blocks(num_classes=num_classes)
-        net.load_state_dict(torch.load(opt.model_state, map_location='cpu')) # ucitavanje tezina
+    if opt.evaluate_model: # EVALUACIJA
+        if dataset != 'CBIS_patches' and num_views == 2: # nije pretreniranje u pitanju
+            net.add_top_blocks(num_classes=num_classes) # dodavanje top blokova    
+        net.load_state_dict(torch.load(opt.model_state, map_location='cpu')) # ucitavanje tezina ipak 
         
     else:
         # Load pretrained weights.
         # In case of four-view models, loading weights is done inside the architecture itself.
-        if opt.num_views == 2 and opt.model_state:    
-            if opt.patch_weights:
+        if opt.num_views == 2 and opt.model_state:    #TRENING 
+            if opt.patch_weights: # ovo je patc classifier
                 print("Loading weights of patch classifier from ", opt.model_state)
                 net = GetModel(str_model=model, n=n, num_classes=5)  
                 net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
@@ -93,12 +94,12 @@ def main(rank, world_size, opt):
                 print("Loading weights of pretrained whole-image classifier from ", opt.model_state)
                 net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
         
-    
+    # Tracking online 
     if rank == 0:
         wandb.init(project="phbreast-project")
         wandb.config.update(opt, allow_val_change=True)
         wandb.watch(net)
-    
+    # Broji parametre
     params = sum(p.numel() for p in net.parameters() if p.requires_grad)
     print(f'[Proc{rank}]Number of parameters:', params)
     print()
@@ -108,13 +109,14 @@ def main(rank, world_size, opt):
         os.makedirs(checkpoint_folder)
     
     # Initialize optimizers
-    if opt.optim == "SGD":
+    if opt.optim == "SGD": 
         optimizer = optim.SGD(net.parameters(), lr=lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
     if opt.optim == "Adam":
         optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=opt.weight_decay, betas=(0.5, 0.999))
     
 
     '''Train model'''
+    # Kreiranje Trainer objekta
     trainer = Trainer(net, optimizer, epochs=epochs,
                       use_cuda=use_cuda, gpu_num=gpu_num,
                       checkpoint_folder = checkpoint_folder,
@@ -125,8 +127,8 @@ def main(rank, world_size, opt):
                       distributed=opt.distributed,
                       rank=rank,
                       world_size=world_size)
-    
-    if opt.evaluate_model:
+    # Trening ili evaluacija 
+    if opt.evaluate_model: 
         trainer.test(eval_loader)
     else:
         trainer.train(train_loader, eval_loader)
