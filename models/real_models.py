@@ -14,13 +14,14 @@ class BasicBlock(nn.Module):
 
     def __init__(self, in_planes, planes, stride=1):
         super(BasicBlock, self).__init__()
+        # standardna 2D konvolucija 
         self.conv1 = nn.Conv2d(
             in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-
+        # Shrocut konekcije 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != self.expansion*planes:
             self.shortcut = nn.Sequential(
@@ -85,10 +86,10 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.layer5 = None
-        self.layer6 = None
+        self.layer6 = None    # nema dodavanja PHC Refiner blokova u standardnim mrezama
         if not gap_output and not before_gap_output:
             self.linear = nn.Linear(512*block.expansion, num_classes)
-    
+    # REFINER BLOKOVI koji se dodaju nakon enkodera 
     def add_top_blocks(self, num_classes=1):
         self.layer5 = self._make_layer(Bottleneck, 512, 2, stride=2)
         self.layer6 = self._make_layer(Bottleneck, 512, 2, stride=2)
