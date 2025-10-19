@@ -30,16 +30,19 @@ class MyDataset(torch.utils.data.Dataset):
         return img, label
 
 def MyDataLoader(root, name, batch_size, num_workers=1, distributed=False, rank=0, world_size=None):
+    # root: .pt fajlovi, name: INbreast/CBIS
     print("----Loading dataset----")
+    # rotacije 
     TRAIN_TRANSFORM_IMG = torchvision.transforms.Compose([
         #torchvision.transforms.ToTensor(),
-        torchvision.transforms.RandomHorizontalFlip(),
-        torchvision.transforms.RandomVerticalFlip(),
+        torchvision.transforms.RandomHorizontalFlip(), # levo desno
+        torchvision.transforms.RandomVerticalFlip(), # gore dole 
         torchvision.transforms.RandomRotation(degrees=(-25, 25))
     ])
     
     VAL_TRANSFORM_IMG = torchvision.transforms.Compose([
         #torchvision.transforms.ToTensor()
+        # ovo je validacija i neam augmentacije 
     ])
     
     # root contains two files: training.pt and validation.pt
@@ -47,7 +50,7 @@ def MyDataLoader(root, name, batch_size, num_workers=1, distributed=False, rank=
     
     training = torch.load(root+"/"+files[0])
     validation = torch.load(root+"/"+files[1])
-    
+    # MyDataset objetki 
     train_dataset = MyDataset(training, transform=TRAIN_TRANSFORM_IMG)
     eval_dataset = MyDataset(validation, transform=VAL_TRANSFORM_IMG)
 
