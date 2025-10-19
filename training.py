@@ -9,7 +9,7 @@ sys.path.append('early-stopping-pytorch')
 from pytorchtools import EarlyStopping
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
-
+# trening i evaluacija ovde
 class Trainer():
     def __init__(self, net, optimizer, epochs,
                       use_cuda=True, gpu_num=0,
@@ -33,12 +33,15 @@ class Trainer():
         self.world_size = world_size
         self.num_classes = num_classes
         self.num_views = num_views
-
+                          
+# LOSS funkcija
+        # Ako je binarna klasifikacija 
         if num_classes == 1:
             pos_weight = torch.tensor([pos_weight]) if pos_weight else None
             self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
             self.val_criterion = nn.BCEWithLogitsLoss()
-
+        # Ako je patches i ima 5 klasa
+        # Cros Etropy loss se koristi 
         else:
             self.criterion = nn.CrossEntropyLoss()
             self.val_criterion = self.criterion
@@ -105,8 +108,8 @@ class Trainer():
                                 for param in layer.a:
                                     regularization_loss += torch.sum(abs(param))
                     loss += 0.001 * regularization_loss
-
-
+            
+                # backward pass     
                 loss.backward()
                 self.optimizer.step()
 
@@ -114,7 +117,7 @@ class Trainer():
                 
             end = time.time()
             
-           
+           # validacija 
             self.net.eval()
             
             if self.distributed:
@@ -182,6 +185,7 @@ class Trainer():
                 auc = roc_auc_score(y_true, y_pred)
 
             # Log metrics
+            # logovanje na wand da bi se pratilo 
             if self.rank == 0:
                 wandb.log({"train loss": running_loss_train/i, "epoch": epoch+1})
                 wandb.log({"val loss": running_loss_eval/j, "epoch": epoch+1})
@@ -212,10 +216,10 @@ class Trainer():
             wandb.finish()
             
         print(f'[Proc{self.rank}]Finished Training')
-    
+    # Evaluacija 
     def test(self, test_loader):
         print("Testing net...")
-        
+        # ne trebaju gradijenti 
         for name, params in self.net.named_parameters():
             params.requires_grad = False
 
