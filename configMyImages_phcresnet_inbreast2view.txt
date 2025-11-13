@@ -10,5 +10,5 @@
 --model=phcresnet18
 --n=2
 --train_dir=/content/drive/MyDrive/INBreast/MyProccesedImages
---model_state=/content/drive/MyDrive/INBreast/PretrainedModelWeights/phresnet18_inbreast2views.pt
---evaluate_model=True
+--model_state=/content/drive/MyDrive/INBreast/PretrainedModelWeights/phresnet18_cbis2views.pt
+--patch_weights=False
