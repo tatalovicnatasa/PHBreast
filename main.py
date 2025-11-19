@@ -57,14 +57,24 @@ def main(rank, world_size, opt):
     n = opt.n
     train_dir = opt.train_dir
     num_views = opt.num_views
-    
-    if dataset == 'CBIS' or dataset == 'INbreast':
+
+    # PROMENJENO --------------------------------------------------
+    if dataset == 'CBIS'or dataset == 'INbreast':
         num_classes = 1
+        birads_mode= False
+    elif dataset == 'INbreastBIRADS': 
+        num_classes = 6
+        birads_mode= True
     elif dataset == 'CBIS_patches':
         num_classes = 5
+        birads_mode= False
     else:
         RuntimeError('Wrong dataset or not implemented')
     
+    if birads_mode:
+      print("BIRADS clasiffication", num_classes)
+    
+
     train_loader, eval_loader = MyDataLoader(root=train_dir, name=dataset, batch_size=batch_size, num_workers=n_workers, 
                                              distributed=opt.distributed, rank=rank, world_size=world_size)
     
@@ -77,22 +87,102 @@ def main(rank, world_size, opt):
             net.add_top_blocks(num_classes=num_classes)
         net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
         
-    else:
-        # Load pretrained weights.
-        # In case of four-view models, loading weights is done inside the architecture itself.
-        if opt.num_views == 2 and opt.model_state:    
-            if opt.patch_weights:
-                print("Loading weights of patch classifier from ", opt.model_state)
-                net = GetModel(str_model=model, n=n, num_classes=5)  
-                net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
-                net.add_top_blocks(num_classes=num_classes)
+    # else:
+    #     # Load pretrained weights.
+    #     # In case of four-view models, loading weights is done inside the architecture itself.
+    #     if opt.num_views == 2 and opt.model_state:    
+    #         if opt.patch_weights:
+    #             print("Loading weights of patch classifier from ", opt.model_state)
+    #             net = GetModel(str_model=model, n=n, num_classes=5)  
+    #             net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
+    #             net.add_top_blocks(num_classes=num_classes)
 
-            else: # whole-image weights
-                net.add_top_blocks(num_classes=num_classes)
-                print("Loading weights of pretrained whole-image classifier from ", opt.model_state)
-                net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
+    #         else: # whole-image weights
+    #             if birads_mode:
+    #               print("Loading weights of binary pretrained classifier, removing last layers", opt.model_state)
+    #               # creating original binary model 
+    #               net = GetModel(str_model=model, n=n, num_classes=1,weights=None)  
+    #               net.add_top_blocks(num_classes=1)
+    #               # load binary whole image weights
+    #               net.load_state_dict(torch.load(opt.model_state, map_location='cpu'), strict=False)
+    #               # replace 
+    #               print("Replace the last layer ")
+    #               net.linear=torch.nn.Linear(1024, num_classes)
+    #               # net.add_top_blocks(num_classes=num_classes)
+    #             else:
+    #               net = GetModel(str_model=model, n=n, num_classes=1) 
+    #               net.add_top_blocks(num_classes=num_classes)
+    #               print("Loading weights of pretrained whole-image classifier from ", opt.model_state)
+    #               print(f'Number of classes:',num_classes)
+    #               net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
         
-    
+    else:
+    # TRAINING MODE
+      if dataset == 'INbreastBIRADS' and opt.model_state:
+          # =====================================================
+          # BIRADS TRANSFER LEARNING - KORISTI BINARNE TEŽINE
+          # =====================================================
+          print("\n" + "="*60)
+          print("BIRADS TRANSFER LEARNING MODE")
+          print("="*60)
+          
+          # Korak 1: Učitaj model sa 1 klasom (binarna klasifikacija)
+          print("Step 1: Loading base model (binary classification)...")
+          net = GetModel(
+              str_model=model, 
+              n=n, 
+              num_classes=1,  # Binarni model
+              weights=None,
+              shared=opt.shared, 
+              patch_weights=False
+          )
+          
+          # Korak 2: Dodaj PHRefiner blokove
+          print("Step 2: Adding PHRefiner blocks (layer5, layer6)...")
+          net.add_top_blocks(num_classes=1)
+          
+          # Korak 3: Učitaj binarne težine
+          print(f"Step 3: Loading binary weights from: {opt.model_state}")
+          try:
+              pretrained_dict = torch.load(opt.model_state, map_location='cpu')
+              net.load_state_dict(pretrained_dict)
+              print("✓ Binary weights loaded successfully!")
+          except Exception as e:
+              print(f"✗ Error loading weights: {e}")
+              raise
+          
+          # Korak 4: Zameni poslednji FC layer za BIRADS
+          print(f"Step 4: Replacing FC layer: 1 class → {num_classes} classes")
+          net.linear = torch.nn.Linear(1024, num_classes)
+          print("✓ FC layer replaced!")
+          
+          
+      elif opt.model_state and opt.num_views == 2:
+          # Stari kod za patch ili whole-image weights (NE za BIRADS)
+          if opt.patch_weights:
+              print("Loading patch classifier weights...")
+              net = GetModel(str_model=model, n=n, num_classes=5)  
+              net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
+              net.add_top_blocks(num_classes=num_classes)
+          else:
+              print("Loading whole-image weights...")
+              net = GetModel(str_model=model, n=n, num_classes=num_classes)
+              net.add_top_blocks(num_classes=num_classes)
+              net.load_state_dict(torch.load(opt.model_state, map_location='cpu'))
+      else:
+          # Training od nule
+          print("Training from scratch...")
+          net = GetModel(
+              str_model=model, 
+              n=n, 
+              num_classes=num_classes, 
+              weights=None,
+              shared=opt.shared, 
+              patch_weights=opt.patch_weights
+          )
+          if num_views == 2 and dataset != 'CBIS_patches':
+              net.add_top_blocks(num_classes=num_classes)
+  # ----
     if rank == 0:
         wandb.init(project="phbreast-project")
         wandb.config.update(opt, allow_val_change=True)
@@ -101,8 +191,8 @@ def main(rank, world_size, opt):
     params = sum(p.numel() for p in net.parameters() if p.requires_grad)
     print(f'[Proc{rank}]Number of parameters:', params)
     print()
-        
-    checkpoint_folder = '/content/drive/MyDrive/INBreast/checkpoints/'
+
+    checkpoint_folder = '/content/drive/MyDrive/PHBreastBIRADS/checkpoints2/'
     if not os.path.isdir(checkpoint_folder):
         os.makedirs(checkpoint_folder)
     
@@ -142,7 +232,7 @@ if __name__ == '__main__':
     parser.add_argument('--l1_reg', type=bool, default=False)
     parser.add_argument('--train_dir', type=str, default='./data/', help="Folder containg training data")
     
-    parser.add_argument('--Dataset', type=str, default='SVHN', help='CBIS_patches, CBIS, INbreast')
+    parser.add_argument('--Dataset', type=str, default='SVHN', help='CBIS_patches, CBIS, INbreast, INbreastBIRADS')
     parser.add_argument('--num_views', type=int, default=2, help='Number of views in input')
     parser.add_argument('--model', type=str, default='resnet20', help='Models: ...')
     parser.add_argument('--batch_size', type=int, default=4)

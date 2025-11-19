@@ -15,7 +15,7 @@ class Trainer():
                       use_cuda=True, gpu_num=0,
                       checkpoint_folder="./checkpoints",
                       l1_reg=False,
-                      num_classes=1,
+                      num_classes=6,
                       num_views=2,
                       pos_weight=None,
                       distributed=False,
@@ -60,6 +60,9 @@ class Trainer():
 
     def train(self, train_loader, eval_loader):
         
+        # PROMENJENO--------------------------------
+        # Fixing Batch = 4
+        accumulation_step = 2
         # name for checkpoint
         run_name = wandb.run.name if self.rank==0 else None
 
@@ -91,7 +94,7 @@ class Trainer():
                 if self.use_cuda:
                     inputs, labels = inputs.cuda('cuda:%i' %self.gpu_num), labels.cuda('cuda:%i' %self.gpu_num)
                     
-                self.optimizer.zero_grad()
+                # self.optimizer.zero_grad()
                 
                 if self.num_views == 4:
                     inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
@@ -109,12 +112,20 @@ class Trainer():
                                     regularization_loss += torch.sum(abs(param))
                     loss += 0.001 * regularization_loss
             
+                loss = loss/accumulation_step
                 # backward pass     
                 loss.backward()
-                self.optimizer.step()
+                # self.optimizer.step()
+                if (i + 1) % accumulation_step == 0: # added
+                  self.optimizer.step() #added
+                  self.optimizer.zero_grad() #added
 
                 running_loss_train += loss.item()
                 
+            if (i + 1) % accumulation_step != 0: # added
+              self.optimizer.step() #added
+              self.optimizer.zero_grad() #added
+
             end = time.time()
             
            # validacija 

@@ -1,0 +1,107 @@
+_wandb:
+    value:
+        cli_version: 0.22.3
+        e:
+            ex1i2qntjf6u2zv8fm5skktsw3necq4o:
+                args:
+                    - --TextArgs=configMyImages_phcresnet_inbreast2view.txt
+                codePath: main.py
+                codePathLocal: main.py
+                cpu_count: 1
+                cpu_count_logical: 2
+                cudaVersion: "12.4"
+                disk:
+                    /:
+                        total: "120942624768"
+                        used: "41607516160"
+                email: tatalovic.natasa@gmail.com
+                executable: /usr/bin/python3
+                git:
+                    commit: d6ca049b5029a391231e2859367daa52cabea231
+                    remote: https://github.com/tatalovicnatasa/PHBreast.git
+                gpu: Tesla T4
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 2560
+                      memoryTotal: "16106127360"
+                      name: Tesla T4
+                      uuid: GPU-4033e6b5-057f-a7ff-fa4c-5a16f98a1cd2
+                host: d67b07ee0033
+                memory:
+                    total: "13605851136"
+                os: Linux-6.6.105+-x86_64-with-glibc2.35
+                program: /content/drive/MyDrive/PHBreastBIRADS/main.py
+                python: CPython 3.12.12
+                root: /content/drive/MyDrive/PHBreastBIRADS
+                startedAt: "2025-11-17T17:22:57.423295Z"
+                writerId: ex1i2qntjf6u2zv8fm5skktsw3necq4o
+        m: []
+        python_version: 3.12.12
+        t:
+            "1":
+                - 1
+                - 5
+                - 41
+                - 53
+                - 105
+            "2":
+                - 1
+                - 5
+                - 41
+                - 53
+                - 105
+            "3":
+                - 1
+            "4": 3.12.12
+            "5": 0.22.3
+            "12": 0.22.3
+            "13": linux-x86_64
+Dataset:
+    value: INbreastBIRADS
+TextArgs:
+    value: TrainingArguments.txt
+batch_size:
+    value: 4
+cuda:
+    value: true
+distributed:
+    value: false
+epochs:
+    value: 100
+evaluate_model:
+    value: false
+gpu_num:
+    value: 0
+gpu_nums:
+    value: null
+l1_reg:
+    value: false
+lr:
+    value: 1e-05
+model:
+    value: phcresnet18
+model_state:
+    value: /content/drive/MyDrive/INBreast/PretrainedModelWeights/phresnet18_patch_classifier.pt
+momentum:
+    value: 0.9
+"n":
+    value: 2
+n_workers:
+    value: 1
+num_views:
+    value: 2
+optim:
+    value: Adam
+patch_weights:
+    value: true
+pos_weight:
+    value: null
+seed:
+    value: 1656079
+shared:
+    value: true
+train_dir:
+    value: /content/drive/MyDrive/INBreast/INBreast/BIPreprocessedDataBase
+weight_decay:
+    value: 0.0005

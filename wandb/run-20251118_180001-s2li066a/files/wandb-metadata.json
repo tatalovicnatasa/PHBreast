@@ -1,0 +1,43 @@
+{
+  "os":  "Linux-6.6.105+-x86_64-with-glibc2.35",
+  "python":  "CPython 3.12.12",
+  "startedAt":  "2025-11-18T18:00:01.346957Z",
+  "args":  [
+    "--TextArgs=configMyImages_phcresnet_inbreast2view.txt"
+  ],
+  "program":  "/content/drive/MyDrive/PHBreastBIRADS/main.py",
+  "codePath":  "main.py",
+  "codePathLocal":  "main.py",
+  "git":  {
+    "remote":  "https://github.com/tatalovicnatasa/PHBreast.git",
+    "commit":  "d6ca049b5029a391231e2859367daa52cabea231"
+  },
+  "email":  "tatalovic.natasa@gmail.com",
+  "root":  "/content/drive/MyDrive/PHBreastBIRADS",
+  "host":  "49ad66651f09",
+  "executable":  "/usr/bin/python3",
+  "cpu_count":  1,
+  "cpu_count_logical":  2,
+  "gpu":  "Tesla T4",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "120942624768",
+      "used":  "41503789056"
+    }
+  },
+  "memory":  {
+    "total":  "13605851136"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "Tesla T4",
+      "memoryTotal":  "16106127360",
+      "cudaCores":  2560,
+      "architecture":  "Turing",
+      "uuid":  "GPU-236e21f9-dc36-1810-41b2-0b8c8512f1d8"
+    }
+  ],
+  "cudaVersion":  "12.4",
+  "writerId":  "p4v0oraiqss75rqqnlb7oq18hcbpdisa"
+}

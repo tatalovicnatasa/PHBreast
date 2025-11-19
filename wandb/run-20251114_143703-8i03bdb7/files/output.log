@@ -1,0 +1,26 @@
+[Proc0]Number of parameters: 13096849
+
+[Proc0]Running on GPU? True - gpu_num:  0
+Traceback (most recent call last):
+  File "/content/drive/MyDrive/PHBreastBIRADS/main.py", line 174, in <module>
+    main(rank=0, world_size=None, opt=opt)
+  File "/content/drive/MyDrive/PHBreastBIRADS/main.py", line 117, in main
+    trainer = Trainer(net, optimizer, epochs=epochs,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/drive/MyDrive/PHBreastBIRADS/training.py", line 54, in __init__
+    self.net = net.cuda('cuda:%i' %self.gpu_num)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1082, in cuda
+    return self._apply(lambda t: t.cuda(device))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 928, in _apply
+    module._apply(fn)
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 955, in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1082, in <lambda>
+    return self._apply(lambda t: t.cuda(device))
+                                 ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py", line 412, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx

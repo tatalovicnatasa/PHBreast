@@ -1,0 +1,31 @@
+{
+  "os":  "Linux-6.6.105+-x86_64-with-glibc2.35",
+  "python":  "CPython 3.12.12",
+  "startedAt":  "2025-11-14T14:37:03.120341Z",
+  "args":  [
+    "--TextArgs=/content/drive/MyDrive/PHBreast/config2_phcresnet_inbreast2view.txt"
+  ],
+  "program":  "/content/drive/MyDrive/PHBreastBIRADS/main.py",
+  "codePath":  "main.py",
+  "codePathLocal":  "main.py",
+  "git":  {
+    "remote":  "https://github.com/tatalovicnatasa/PHBreast.git",
+    "commit":  "d6ca049b5029a391231e2859367daa52cabea231"
+  },
+  "email":  "tatalovic.natasa@gmail.com",
+  "root":  "/content/drive/MyDrive/PHBreastBIRADS",
+  "host":  "8650c828472f",
+  "executable":  "/usr/bin/python3",
+  "cpu_count":  1,
+  "cpu_count_logical":  2,
+  "disk":  {
+    "/":  {
+      "total":  "115658190848",
+      "used":  "41557712896"
+    }
+  },
+  "memory":  {
+    "total":  "13605851136"
+  },
+  "writerId":  "vu37kg30222hz0j4izrs8fn6yab19xn1"
+}

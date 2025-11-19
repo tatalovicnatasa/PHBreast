@@ -1,0 +1,5 @@
+[Proc0]Number of parameters: 13100949
+
+[Proc0]Running on GPU? True - gpu_num:  0
+[Epoch: 1][Train Loss: 0.713360][Val Loss: 1.707290][Val Acc: 10.909091][Time: 204.858369]
+[Proc0]Finished Training

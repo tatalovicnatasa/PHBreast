@@ -1,0 +1,11 @@
+{"time":"2025-11-17T17:22:57.687737128Z","level":"INFO","msg":"stream: starting","core version":"0.22.3"}
+{"time":"2025-11-17T17:22:57.883205645Z","level":"INFO","msg":"stream: created new stream","id":"emk16imb"}
+{"time":"2025-11-17T17:22:57.883473831Z","level":"INFO","msg":"handler: started","stream_id":"emk16imb"}
+{"time":"2025-11-17T17:22:57.889803736Z","level":"INFO","msg":"stream: started","id":"emk16imb"}
+{"time":"2025-11-17T17:22:57.889839555Z","level":"INFO","msg":"writer: started","stream_id":"emk16imb"}
+{"time":"2025-11-17T17:22:57.889874101Z","level":"INFO","msg":"sender: started","stream_id":"emk16imb"}
+{"time":"2025-11-17T19:04:01.669930211Z","level":"INFO","msg":"stream: closing","id":"emk16imb"}
+{"time":"2025-11-17T19:04:02.113688024Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-11-17T19:04:02.368957864Z","level":"INFO","msg":"handler: closed","stream_id":"emk16imb"}
+{"time":"2025-11-17T19:04:02.371144997Z","level":"INFO","msg":"sender: closed","stream_id":"emk16imb"}
+{"time":"2025-11-17T19:04:02.371283297Z","level":"INFO","msg":"stream: closed","id":"emk16imb"}

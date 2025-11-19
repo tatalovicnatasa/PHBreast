@@ -1,0 +1,25 @@
+2025-11-18 18:00:01,384 INFO    MainThread:1651 [wandb_setup.py:_flush():81] Current SDK version is 0.22.3
+2025-11-18 18:00:01,385 INFO    MainThread:1651 [wandb_setup.py:_flush():81] Configure stats pid to 1651
+2025-11-18 18:00:01,386 INFO    MainThread:1651 [wandb_setup.py:_flush():81] Loading settings from /root/.config/wandb/settings
+2025-11-18 18:00:01,387 INFO    MainThread:1651 [wandb_setup.py:_flush():81] Loading settings from /content/drive/MyDrive/PHBreastBIRADS/wandb/settings
+2025-11-18 18:00:01,387 INFO    MainThread:1651 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2025-11-18 18:00:01,388 INFO    MainThread:1651 [wandb_init.py:setup_run_log_directory():706] Logging user logs to /content/drive/MyDrive/PHBreastBIRADS/wandb/run-20251118_180001-s2li066a/logs/debug.log
+2025-11-18 18:00:01,388 INFO    MainThread:1651 [wandb_init.py:setup_run_log_directory():707] Logging internal logs to /content/drive/MyDrive/PHBreastBIRADS/wandb/run-20251118_180001-s2li066a/logs/debug-internal.log
+2025-11-18 18:00:01,388 INFO    MainThread:1651 [wandb_init.py:init():833] calling init triggers
+2025-11-18 18:00:01,389 INFO    MainThread:1651 [wandb_init.py:init():838] wandb.init called with sweep_config: {}
+config: {'_wandb': {}}
+2025-11-18 18:00:01,389 INFO    MainThread:1651 [wandb_init.py:init():881] starting backend
+2025-11-18 18:00:01,808 INFO    MainThread:1651 [wandb_init.py:init():884] sending inform_init request
+2025-11-18 18:00:01,822 INFO    MainThread:1651 [wandb_init.py:init():892] backend started and connected
+2025-11-18 18:00:01,824 INFO    MainThread:1651 [wandb_init.py:init():962] updated telemetry
+2025-11-18 18:00:05,374 INFO    MainThread:1651 [wandb_init.py:init():986] communicating run to backend with 90.0 second timeout
+2025-11-18 18:00:08,227 INFO    MainThread:1651 [wandb_init.py:init():1033] starting run threads in backend
+2025-11-18 18:00:09,029 INFO    MainThread:1651 [wandb_run.py:_console_start():2506] atexit reg
+2025-11-18 18:00:09,031 INFO    MainThread:1651 [wandb_run.py:_redirect():2354] redirect: wrap_raw
+2025-11-18 18:00:09,033 INFO    MainThread:1651 [wandb_run.py:_redirect():2423] Wrapping output streams.
+2025-11-18 18:00:09,034 INFO    MainThread:1651 [wandb_run.py:_redirect():2446] Redirects installed.
+2025-11-18 18:00:09,052 INFO    MainThread:1651 [wandb_init.py:init():1073] run started, returning control to user process
+2025-11-18 18:00:09,055 INFO    MainThread:1651 [wandb_run.py:_config_callback():1390] config_cb None None {'cuda': True, 'seed': 1656079, 'gpu_num': 0, 'n_workers': 1, 'n': 2, 'optim': 'Adam', 'l1_reg': False, 'train_dir': '/content/drive/MyDrive/INBreast/INBreast/BIPreprocessedDataBase2', 'Dataset': 'INbreastBIRADS', 'num_views': 2, 'model': 'phcresnet18', 'batch_size': 4, 'epochs': 100, 'lr': 1e-05, 'weight_decay': 0.0005, 'momentum': 0.9, 'model_state': '/content/drive/MyDrive/PHBreast/checkpoints/best_dashing-water-20.pt', 'pos_weight': None, 'shared': True, 'patch_weights': True, 'evaluate_model': False, 'distributed': False, 'gpu_nums': None, 'TextArgs': 'TrainingArguments.txt'}
+2025-11-18 18:00:09,059 INFO    MainThread:1651 [wandb_watch.py:_watch():68] Watching
+2025-11-18 20:20:24,404 INFO    wandb-AsyncioManager-main:1651 [service_client.py:_forward_responses():80] Reached EOF.
+2025-11-18 20:20:24,405 INFO    wandb-AsyncioManager-main:1651 [mailbox.py:close():137] Closing mailbox, abandoning 1 handles.

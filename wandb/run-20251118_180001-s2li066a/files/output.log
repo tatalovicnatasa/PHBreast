@@ -1,0 +1,80 @@
+[Proc0]Number of parameters: 13101974
+
+[Proc0]Running on GPU? True - gpu_num:  0
+[Epoch: 1][Train Loss: 0.822258][Val Loss: 1.383209][Val Acc: 57.894737][Time: 211.890907]
+[Epoch: 2][Train Loss: 0.667732][Val Loss: 1.335887][Val Acc: 54.385965][Time: 211.691008]
+EarlyStopping counter: 1 out of 20
+[Epoch: 3][Train Loss: 0.631136][Val Loss: 1.335306][Val Acc: 54.385965][Time: 211.650925]
+EarlyStopping counter: 2 out of 20
+[Epoch: 4][Train Loss: 0.611509][Val Loss: 1.413916][Val Acc: 57.894737][Time: 211.651419]
+[Epoch: 5][Train Loss: 0.629069][Val Loss: 1.449026][Val Acc: 52.631579][Time: 211.677044]
+EarlyStopping counter: 1 out of 20
+[Epoch: 6][Train Loss: 0.590541][Val Loss: 2.378847][Val Acc: 31.578947][Time: 211.650099]
+EarlyStopping counter: 2 out of 20
+[Epoch: 7][Train Loss: 0.607044][Val Loss: 1.482156][Val Acc: 47.368421][Time: 211.662699]
+EarlyStopping counter: 3 out of 20
+[Epoch: 8][Train Loss: 0.592297][Val Loss: 1.474768][Val Acc: 45.614035][Time: 211.661601]
+EarlyStopping counter: 4 out of 20
+[Epoch: 9][Train Loss: 0.538135][Val Loss: 1.813017][Val Acc: 54.385965][Time: 211.640397]
+EarlyStopping counter: 5 out of 20
+[Epoch: 10][Train Loss: 0.553820][Val Loss: 1.501515][Val Acc: 49.122807][Time: 211.613522]
+EarlyStopping counter: 6 out of 20
+[Epoch: 11][Train Loss: 0.580112][Val Loss: 1.417758][Val Acc: 54.385965][Time: 211.635145]
+EarlyStopping counter: 7 out of 20
+[Epoch: 12][Train Loss: 0.552164][Val Loss: 1.614955][Val Acc: 47.368421][Time: 211.621424]
+EarlyStopping counter: 8 out of 20
+[Epoch: 13][Train Loss: 0.497099][Val Loss: 2.273067][Val Acc: 42.105263][Time: 211.677343]
+EarlyStopping counter: 9 out of 20
+[Epoch: 14][Train Loss: 0.530815][Val Loss: 1.483448][Val Acc: 54.385965][Time: 211.631084]
+EarlyStopping counter: 10 out of 20
+[Epoch: 15][Train Loss: 0.446024][Val Loss: 1.967858][Val Acc: 47.368421][Time: 211.736063]
+EarlyStopping counter: 11 out of 20
+[Epoch: 16][Train Loss: 0.520935][Val Loss: 2.405740][Val Acc: 36.842105][Time: 211.657287]
+EarlyStopping counter: 12 out of 20
+[Epoch: 17][Train Loss: 0.491256][Val Loss: 1.628196][Val Acc: 50.877193][Time: 211.652583]
+EarlyStopping counter: 13 out of 20
+[Epoch: 18][Train Loss: 0.482468][Val Loss: 2.011239][Val Acc: 47.368421][Time: 211.655224]
+EarlyStopping counter: 14 out of 20
+[Epoch: 19][Train Loss: 0.524855][Val Loss: 1.605128][Val Acc: 59.649123][Time: 211.626116]
+[Epoch: 20][Train Loss: 0.510151][Val Loss: 2.445694][Val Acc: 29.824561][Time: 211.631078]
+EarlyStopping counter: 1 out of 20
+[Epoch: 21][Train Loss: 0.490402][Val Loss: 1.564959][Val Acc: 47.368421][Time: 211.677017]
+EarlyStopping counter: 2 out of 20
+[Epoch: 22][Train Loss: 0.433254][Val Loss: 1.570304][Val Acc: 43.859649][Time: 211.658229]
+EarlyStopping counter: 3 out of 20
+[Epoch: 23][Train Loss: 0.440544][Val Loss: 1.515761][Val Acc: 49.122807][Time: 211.660496]
+EarlyStopping counter: 4 out of 20
+[Epoch: 24][Train Loss: 0.447608][Val Loss: 2.193722][Val Acc: 43.859649][Time: 211.745972]
+EarlyStopping counter: 5 out of 20
+[Epoch: 25][Train Loss: 0.418432][Val Loss: 1.464462][Val Acc: 50.877193][Time: 211.715718]
+EarlyStopping counter: 6 out of 20
+[Epoch: 26][Train Loss: 0.451494][Val Loss: 1.749605][Val Acc: 49.122807][Time: 211.768407]
+EarlyStopping counter: 7 out of 20
+[Epoch: 27][Train Loss: 0.401812][Val Loss: 1.938510][Val Acc: 40.350877][Time: 211.676317]
+EarlyStopping counter: 8 out of 20
+[Epoch: 28][Train Loss: 0.391362][Val Loss: 2.183842][Val Acc: 36.842105][Time: 211.674255]
+EarlyStopping counter: 9 out of 20
+[Epoch: 29][Train Loss: 0.429368][Val Loss: 2.281000][Val Acc: 38.596491][Time: 210.458397]
+EarlyStopping counter: 10 out of 20
+[Epoch: 30][Train Loss: 0.406754][Val Loss: 2.127776][Val Acc: 35.087719][Time: 209.320709]
+EarlyStopping counter: 11 out of 20
+[Epoch: 31][Train Loss: 0.371917][Val Loss: 1.927474][Val Acc: 49.122807][Time: 209.383926]
+EarlyStopping counter: 12 out of 20
+[Epoch: 32][Train Loss: 0.392989][Val Loss: 2.026003][Val Acc: 43.859649][Time: 209.264906]
+EarlyStopping counter: 13 out of 20
+[Epoch: 33][Train Loss: 0.388431][Val Loss: 2.281816][Val Acc: 38.596491][Time: 209.155695]
+EarlyStopping counter: 14 out of 20
+[Epoch: 34][Train Loss: 0.395542][Val Loss: 1.866105][Val Acc: 40.350877][Time: 209.210321]
+EarlyStopping counter: 15 out of 20
+[Epoch: 35][Train Loss: 0.330853][Val Loss: 2.084786][Val Acc: 52.631579][Time: 209.174692]
+EarlyStopping counter: 16 out of 20
+[Epoch: 36][Train Loss: 0.331607][Val Loss: 2.018763][Val Acc: 36.842105][Time: 209.196215]
+EarlyStopping counter: 17 out of 20
+[Epoch: 37][Train Loss: 0.367497][Val Loss: 1.541423][Val Acc: 45.614035][Time: 209.163163]
+EarlyStopping counter: 18 out of 20
+[Epoch: 38][Train Loss: 0.342542][Val Loss: 1.720870][Val Acc: 49.122807][Time: 209.167412]
+EarlyStopping counter: 19 out of 20
+[Epoch: 39][Train Loss: 0.324782][Val Loss: 2.378208][Val Acc: 42.105263][Time: 209.205617]
+EarlyStopping counter: 20 out of 20
+Proc[0]Early stopping
+[Proc0]Finished Training

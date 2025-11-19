@@ -1,0 +1,98 @@
+_wandb:
+    value:
+        cli_version: 0.22.3
+        e:
+            vu37kg30222hz0j4izrs8fn6yab19xn1:
+                args:
+                    - --TextArgs=/content/drive/MyDrive/PHBreast/config2_phcresnet_inbreast2view.txt
+                codePath: main.py
+                codePathLocal: main.py
+                cpu_count: 1
+                cpu_count_logical: 2
+                disk:
+                    /:
+                        total: "115658190848"
+                        used: "41557712896"
+                email: tatalovic.natasa@gmail.com
+                executable: /usr/bin/python3
+                git:
+                    commit: d6ca049b5029a391231e2859367daa52cabea231
+                    remote: https://github.com/tatalovicnatasa/PHBreast.git
+                host: 8650c828472f
+                memory:
+                    total: "13605851136"
+                os: Linux-6.6.105+-x86_64-with-glibc2.35
+                program: /content/drive/MyDrive/PHBreastBIRADS/main.py
+                python: CPython 3.12.12
+                root: /content/drive/MyDrive/PHBreastBIRADS
+                startedAt: "2025-11-14T14:37:03.120341Z"
+                writerId: vu37kg30222hz0j4izrs8fn6yab19xn1
+        m: []
+        python_version: 3.12.12
+        t:
+            "1":
+                - 1
+                - 5
+                - 41
+                - 53
+                - 105
+            "2":
+                - 1
+                - 5
+                - 41
+                - 53
+                - 105
+            "3":
+                - 1
+            "4": 3.12.12
+            "5": 0.22.3
+            "12": 0.22.3
+            "13": linux-x86_64
+Dataset:
+    value: INbreast
+TextArgs:
+    value: TrainingArguments.txt
+batch_size:
+    value: 8
+cuda:
+    value: true
+distributed:
+    value: false
+epochs:
+    value: 100
+evaluate_model:
+    value: true
+gpu_num:
+    value: 0
+gpu_nums:
+    value: null
+l1_reg:
+    value: false
+lr:
+    value: 1e-05
+model:
+    value: phcresnet18
+model_state:
+    value: /content/drive/MyDrive/INBreast/PretrainedModelWeights/phresnet18_inbreast2views.pt
+momentum:
+    value: 0.9
+"n":
+    value: 2
+n_workers:
+    value: 1
+num_views:
+    value: 2
+optim:
+    value: Adam
+patch_weights:
+    value: true
+pos_weight:
+    value: null
+seed:
+    value: 1656079
+shared:
+    value: true
+train_dir:
+    value: /content/drive/MyDrive/INBreast/inbreast_2views_train_val/torch_saved
+weight_decay:
+    value: 0.0005

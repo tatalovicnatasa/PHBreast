@@ -1,5 +1,4 @@
 from models import phc_models, real_models
-
 def GetModel(str_model, n, num_classes=1, weights=None, shared=False, patch_weights=True, visualize=False):
     """
     Get model from str_model.
@@ -12,6 +11,8 @@ def GetModel(str_model, n, num_classes=1, weights=None, shared=False, patch_weig
     """
 
     print('Model:', str_model)
+    # Print number of classed
+    print('num_classes', num_classes)
     print()
     
     ## Two-view models ##
