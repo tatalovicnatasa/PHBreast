@@ -9,7 +9,6 @@
 --optim=Adam
 --model=phcresnet18
 --n=2
---train_dir=/mnt/c/Users/User/Desktop/MASTER/MASTERPROJECT/OfficialDataPHBreast/PreprocessedData/inbreast_2views_train_val/torch_saved
---model_state=/mnt/c/Users/User/Desktop/MASTER/MASTERPROJECT/OfficialDataPHBreast/PretrainedWeights/PHResNet18/phresnet18_inbreast2views.pt
---patch_weights=False
+--train_dir=/DRIVE/MyDrive/Projects/DeepLearningMaster/PreprocessedData/inbreast_2views_train_val/torch_saved
+--model_state=/DRIVE/MyDrive/Projects/DeepLearningMaster/PretrainedWeights/PHResNet18/phresnet18_inbreast2views.pt
 --evaluate_model=True
