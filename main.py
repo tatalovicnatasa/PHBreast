@@ -102,7 +102,7 @@ def main(rank, world_size, opt):
     print(f'[Proc{rank}]Number of parameters:', params)
     print()
         
-    checkpoint_folder = 'checkpoints/'
+    checkpoint_folder = '/content/drive/MyDrive/Projects/DeepLearningMaster/checkpoints/binary'
     if not os.path.isdir(checkpoint_folder):
         os.makedirs(checkpoint_folder)
     
