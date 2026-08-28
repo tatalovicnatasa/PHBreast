@@ -119,38 +119,39 @@ class Trainer():
             
             if self.distributed:
                 to_gather = dict(y_pred=None, y_true=None, loss_eval=None, loss_train=running_loss_train)
-                
-            for j, eval_data in enumerate(eval_loader, 0):
-                inputs, labels = eval_data
+            
+            with torch.no_grad(): # Added    
+                for j, eval_data in enumerate(eval_loader, 0):
+                    inputs, labels = eval_data
 
-                if self.num_views == 4:
-                    labels = torch.cat([labels[0], labels[1]], dim=0)
+                    if self.num_views == 4:
+                        labels = torch.cat([labels[0], labels[1]], dim=0)
+                        
+                    if self.num_classes == 1:
+                        labels = labels.view((-1, 1)).to(torch.float32)
+
+                    if self.use_cuda:
+                        inputs, labels = inputs.cuda('cuda:%i' %self.gpu_num), labels.cuda('cuda:%i' %self.gpu_num)
                     
-                if self.num_classes == 1:
-                    labels = labels.view((-1, 1)).to(torch.float32)
+                    if self.num_views == 4:
+                        inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
+                        
+                    eval_outputs = self.net(inputs)
+                    eval_loss = self.val_criterion(eval_outputs, labels)
+                    running_loss_eval += eval_loss.item()
 
-                if self.use_cuda:
-                    inputs, labels = inputs.cuda('cuda:%i' %self.gpu_num), labels.cuda('cuda:%i' %self.gpu_num)
-                
-                if self.num_views == 4:
-                    inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
+                    # for multi-class (patch)
+                    if self.num_classes == 1:
+                        predicted = torch.sigmoid(eval_outputs) > 0.5
+                    else:
+                        _, predicted = torch.max(eval_outputs.data, 1)  
                     
-                eval_outputs = self.net(inputs)
-                eval_loss = self.val_criterion(eval_outputs, labels)
-                running_loss_eval += eval_loss.item()
+                    total += labels.size(0)
+                    correct += (predicted == labels).sum().item()
+                    acc = 100*correct/total
 
-                # for multi-class (patch)
-                if self.num_classes == 1:
-                    predicted = torch.sigmoid(eval_outputs) > 0.5
-                else:
-                    _, predicted = torch.max(eval_outputs.data, 1)  
-                
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-                acc = 100*correct/total
-
-                y_pred = torch.cat((y_pred, predicted.view(predicted.shape[0]).cpu()))
-                y_true = torch.cat((y_true, labels.view(labels.shape[0]).cpu()))
+                    y_pred = torch.cat((y_pred, predicted.view(predicted.shape[0]).cpu()))
+                    y_true = torch.cat((y_true, labels.view(labels.shape[0]).cpu()))
 
             
             if self.distributed:
