@@ -1,5 +1,5 @@
 --epochs=100
---batch_size=8
+--batch_size=4
 --cuda=True
 --gpu_num=0
 --seed=1656079
@@ -10,6 +10,6 @@
 --model=phcresnet18
 --n=2
 --train_dir=/content/drive/MyDrive/Projects/DeepLearningMaster/BinaryPreprocessedIm
---model_state=/content/drive/MyDrive/Projects/DeepLearningMaster/checkpoints/binary/best_frosty-hill-40.pt
+--model_state=/content/drive/MyDrive/Projects/DeepLearningMaster/PretrainedWeights/PHResNet18/phresnet18_cbis2views.pt
 --patch_weights=False
---evaluate_model=True
+--evaluate_model=False
