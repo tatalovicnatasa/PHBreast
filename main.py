@@ -96,7 +96,7 @@ def main(rank, world_size, opt):
     if birads == True:  # Added
         print("Birads classification, compute class weights")  # Added
         balanced_weights = compute_classweights(
-            train_loader, num_classes=num_classes
+            train_loader.dataset, num_classes=num_classes
         )  # Added
         print(f"The class_weight using balanced method is:{balanced_weights}")  # Added\
     else:
