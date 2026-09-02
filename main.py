@@ -11,9 +11,6 @@ import torch.multiprocessing as mp
 import torch.optim as optim
 
 import wandb
-import os
-import random
-from multiprocessing import cpu_count
 from GetModel import GetModel
 from training import Trainer
 from utils.dataloaders import MyDataLoader
@@ -98,7 +95,9 @@ def main(rank, world_size, opt):
     # class weight for class imbalance
     if birads == True:  # Added
         print("Birads classification, compute class weights")  # Added
-        balanced_weights = compute_classweights(train_loader, num_classes=num_classes)  # Added
+        balanced_weights = compute_classweights(
+            train_loader, num_classes=num_classes
+        )  # Added
         print(f"The class_weight using balanced method is:{balanced_weights}")  # Added\
     else:
         balanced_weights = None
@@ -122,22 +121,34 @@ def main(rank, world_size, opt):
         # Load pretrained weights.
         # In case of four-view models, loading weights is done inside the architecture itself.
         if opt.num_views == 2 and opt.model_state:
-            if opt.patch_weights:  # patches - transferring from shallow point, match the model first and add blocks to train them 
+            if (
+                opt.patch_weights
+            ):  # patches - transferring from shallow point, match the model first and add blocks to train them
                 print("Loading weights of patch classifier from ", opt.model_state)
                 net = GetModel(str_model=model, n=n, num_classes=5)
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
                 net.add_top_blocks(num_classes=num_classes)
 
-            elif birads: # Added - transferring from a deep binary output checkpoint
-                print("Loading weights of pretrained whole-image classifier from: ", opt.model_state)
-                net = GetModel(str_model=model, n=n, num_classes=1) # Fine-tuning, it was binary
+            elif birads:  # Added - transferring from a deep binary output checkpoint
+                print(
+                    "Loading weights of pretrained whole-image classifier from: ",
+                    opt.model_state,
+                )
+                net = GetModel(
+                    str_model=model, n=n, num_classes=1
+                )  # Fine-tuning, it was binary
                 net.add_top_blocks(num_classes=1)
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
-                net.linear = torch.nn.Linear(1024, num_classes)      # THEN swap only the head — a fresh module, not a reload
+                net.linear = torch.nn.Linear(
+                    1024, num_classes
+                )  # THEN swap only the head — a fresh module, not a reload
 
             else:  # whole-image weights
                 net.add_top_blocks(num_classes=num_classes)
-                print("Loading weights of pretrained whole-image classifier from ", opt.model_state)
+                print(
+                    "Loading weights of pretrained whole-image classifier from ",
+                    opt.model_state,
+                )
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
 
     if rank == 0:

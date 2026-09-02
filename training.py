@@ -11,6 +11,12 @@ from models.hypercomplex_layers import PHConv
 sys.path.append("early-stopping-pytorch")
 import torch.distributed as dist
 from pytorchtools import EarlyStopping
+from sklearn.metrics import (  # Added
+    balanced_accuracy_score,
+    confusion_matrix,
+    f1_score,
+    recall_score,
+)
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
@@ -50,9 +56,15 @@ class Trainer:  # Added class_weight to the constructor
             self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
             self.val_criterion = nn.BCEWithLogitsLoss()
         else:
-            class_weight = (torch.tensor(class_weight,dtype = torch.float32) if class_weight is not None else None)  # Added - class_weight comesa as a list from main
-            self.criterion = nn.CrossEntropyLoss(weight=class_weight)  # Added, default False
-            self.val_criterion = nn.CrossEntropyLoss() # Not weighted
+            class_weight = (
+                torch.tensor(class_weight, dtype=torch.float32)
+                if class_weight is not None
+                else None
+            )  # Added - class_weight comesa as a list from main
+            self.criterion = nn.CrossEntropyLoss(
+                weight=class_weight
+            )  # Added, default False
+            self.val_criterion = nn.CrossEntropyLoss()  # Not weighted
 
         if self.use_cuda:
             if pos_weight:
@@ -63,7 +75,7 @@ class Trainer:  # Added class_weight to the constructor
             if class_weight is not None:
                 self.criterion.weight = torch.tensor(class_weight).cuda(
                     "cuda:%i" % self.gpu_num
-                ) # Added - removed [] , no need for double []
+                )  # Added - removed [] , no need for double []
 
             print(
                 f"[Proc{rank}]Running on GPU?",
@@ -83,6 +95,7 @@ class Trainer:  # Added class_weight to the constructor
         else:
             self.net = net
 
+    # Training loop
     def train(self, train_loader, eval_loader):
 
         # name for checkpoint
@@ -107,6 +120,7 @@ class Trainer:  # Added class_weight to the constructor
             correct = 0.0
             y_pred = torch.empty(0)
             y_true = torch.empty(0)
+            y_probs = torch.empty(0, self.num_classes)  # Added
 
             for i, data in enumerate(train_loader, 0):
                 inputs, labels = data
@@ -146,7 +160,7 @@ class Trainer:  # Added class_weight to the constructor
                 running_loss_train += loss.item()
 
             end = time.time()
-
+            # Eval in training
             self.net.eval()
 
             if self.distributed:
@@ -184,6 +198,8 @@ class Trainer:  # Added class_weight to the constructor
                         predicted = torch.sigmoid(eval_outputs) > 0.5
                     else:
                         _, predicted = torch.max(eval_outputs.data, 1)
+                        probs = torch.softmax(eval_outputs, dim=1)  # Added
+                        y_probs = torch.cat((y_probs, probs.cpu()))  # Added
 
                     total += labels.size(0)
                     correct += (predicted == labels).sum().item()
@@ -224,6 +240,19 @@ class Trainer:  # Added class_weight to the constructor
             elif self.num_classes == 1:
                 auc = roc_auc_score(y_true, y_pred)
 
+            else:  # Added whole block
+                y_true_np = y_true.numpy()
+                y_pred_np = y_pred.numpy()
+                y_probs_np = y_probs.numpy()
+
+                macro_f1 = f1_score(y_true_np, y_pred_np, average="macro")
+                bal_acc = balanced_accuracy_score(y_true_np, y_pred_np)
+                per_class_recall = recall_score(y_true_np, y_pred_np, average=None)
+                conf_matrix = confusion_matrix(y_true_np, y_pred_np)
+                macro_auc = roc_auc_score(
+                    y_true_np, y_probs_np, multi_class="ovr", average="macro"
+                )
+
             # Log metrics
             if self.rank == 0:
                 wandb.log({"train loss": running_loss_train / i, "epoch": epoch + 1})
@@ -243,23 +272,40 @@ class Trainer:  # Added class_weight to the constructor
                             end - start,
                         )
                     )
-                else:
+                else:  # Added whole block
+                    wandb.log(
+                        {
+                            "val macro-F1": macro_f1,
+                            "val balanced acc": bal_acc,
+                            "val macro-AUC": macro_auc,
+                            "epoch": epoch + 1,
+                        }
+                    )
                     print(
-                        "[Epoch: %i][Train Loss: %f][Val Loss: %f][Val Acc: %f][Time: %f]"
+                        "[Epoch: %i][Train Loss: %f][Val Loss: %f][Val Acc: %f][Macro-F1: %f][Time: %f]"
                         % (
                             epoch + 1,
                             running_loss_train / i,
                             running_loss_eval / j,
                             acc,
+                            macro_f1,
                             end - start,
                         )
                     )
+                    print(f"Confusion matrix:\n{conf_matrix}")
+                    # else:
+                #     print("[Epoch: %i][Train Loss: %f][Val Loss: %f][Val Acc: %f][Time: %f]"
+                #         % ( epoch + 1,
+                #             running_loss_train / i,
+                #             running_loss_eval / j,
+                #             acc,
+                #             end - start,))
 
             # Early stopping
             if self.num_classes == 1:
                 early_stopping(auc, self.net)
             else:
-                early_stopping(acc, self.net)
+                early_stopping(macro_f1, self.net)  # early_stopping(acc, self.net)
 
             if early_stopping.early_stop:
                 print(f"Proc[{self.rank}]Early stopping")
@@ -289,6 +335,7 @@ class Trainer:  # Added class_weight to the constructor
         total = 0.0
         y_pred = torch.empty(0)
         y_true = torch.empty(0)
+        y_probs = torch.empty(0, self.num_classes)  # Added
 
         # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
@@ -315,6 +362,8 @@ class Trainer:  # Added class_weight to the constructor
                     predicted = torch.sigmoid(eval_outputs) > 0.5
                 else:  # for multi-class (patch)
                     _, predicted = torch.max(eval_outputs.data, 1)
+                    probs = torch.softmax(eval_outputs, dim=1)  # Added
+                    y_probs = torch.cat((y_probs, probs.cpu()))  # Added
 
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
@@ -328,9 +377,31 @@ class Trainer:  # Added class_weight to the constructor
                 "AUC %s on the test images: %.3f" % (self.net.__class__.__name__, auc)
             )
             wandb.log({"Test AUC": auc})
+        else:
+            y_true_np = y_true.numpy()
+            y_pred_np = y_pred.numpy()
+            y_probs_np = y_probs.numpy()
 
-        print(
-            "Accuracy %s on the test images: %.3f %%"
-            % (self.net.__class__.__name__, 100 * correct / total)
-        )
-        wandb.log({"Test Accuracy": 100 * correct / total})
+            macro_f1 = f1_score(y_true_np, y_pred_np, average="macro")
+            bal_acc = balanced_accuracy_score(y_true_np, y_pred_np)
+            per_class_recall = recall_score(y_true_np, y_pred_np, average=None)
+            conf_matrix = confusion_matrix(y_true_np, y_pred_np)
+            macro_auc = roc_auc_score(
+                y_true_np, y_probs_np, multi_class="ovr", average="macro"
+            )
+            print(f"Macro-F1: {macro_f1:.4f} | Balanced Acc: {bal_acc:.4f}")
+            print(f"Per-class recall: {per_class_recall}")
+            print(f"Confusion matrix:\n{conf_matrix}")
+            wandb.log(
+                {
+                    "Test macro-F1": macro_f1,
+                    "Test balanced acc": bal_acc,
+                    "Test macro-AUC": macro_auc,
+                }
+            )
+
+        # print(
+        #     "Accuracy %s on the test images: %.3f %%"
+        #     % (self.net.__class__.__name__, 100 * correct / total)
+        # )
+        # wandb.log({"Test Accuracy": 100 * correct / total})
