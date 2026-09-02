@@ -1,9 +1,9 @@
 --epochs=100
---batch_size=4
+--batch_size=8
 --cuda=True
 --gpu_num=0
 --seed=1656079
---Dataset=INbreast
+--Dataset=INbreastBIRADS
 --num_views=2
 --lr=0.00001
 --optim=Adam
