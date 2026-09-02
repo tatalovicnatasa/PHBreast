@@ -9,7 +9,7 @@
 --optim=Adam
 --model=phcresnet18
 --n=2
---train_dir=/content/drive/MyDrive/Projects/DeepLearningMaster/BinaryPreprocessedIm
+--train_dir=/content/drive/MyDrive/Projects/DeepLearningMaster/BiradsPreprocessedIm
 --model_state=/content/drive/MyDrive/Projects/DeepLearningMaster/PretrainedWeights/PHResNet18/phresnet18_cbis2views.pt
 --patch_weights=False
 --evaluate_model=False
