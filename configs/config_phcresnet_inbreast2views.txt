@@ -10,7 +10,7 @@
 --model=phcresnet18
 --n=2
 --train_dir=/content/drive/MyDrive/Projects/DeepLearningMaster/BiradsPreprocessedIM
---model_state=/content/drive/MyDrive/Projects/DeepLearningMaster/checkpoints/binary/best_frosty-hill-40.pt
+--model_state=/content/drive/MyDrive/Projects/DeepLearningMaster/checkpoints/birads/best_fine-disco-48.pt
 --patch_weights=False
---evaluate_model=False
+--evaluate_model=True
 --l1_reg=True
