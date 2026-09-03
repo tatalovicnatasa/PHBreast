@@ -29,7 +29,7 @@ def compute_classweights(dataset, num_classes):
 
     all_labels = np.array(all_labels)
     # 0 1 2 3 4
-    print(type(all_labels))
+    # print(type(all_labels))
     unique_classes = np.unique(all_labels)
     balanced_weight = compute_class_weight(
         class_weight="balanced", classes=unique_classes, y=all_labels

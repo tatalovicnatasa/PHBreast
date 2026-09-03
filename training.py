@@ -73,9 +73,11 @@ class Trainer:  # Added class_weight to the constructor
                 )
 
             if class_weight is not None:
-                self.criterion.weight = torch.tensor(class_weight).cuda(
-                    "cuda:%i" % self.gpu_num
-                )  # Added - removed [] , no need for double []
+                # Already a tensor
+                # self.criterion.weight = torch.tensor(class_weight).cuda(
+                #     "cuda:%i" % self.gpu_num
+                # )  # Added - removed [] , no need for double []
+                self.criterion.weight = class_weight.cuda("cuda:%i" % self.gpu_num) # Added
 
             print(
                 f"[Proc{rank}]Running on GPU?",

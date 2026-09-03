@@ -76,7 +76,8 @@ def main(rank, world_size, opt):
         num_classes = 5
     elif dataset == "INbreastBIRADS":  # Added
         num_classes = 5  # Added
-        birads = True
+        birads = True # Added
+        print("- Multiclass classification -") # Added
     else:
         RuntimeError("Wrong dataset or not implemented")
     # DataLoader file in dataloaders.py
@@ -89,16 +90,14 @@ def main(rank, world_size, opt):
         rank=rank,
         world_size=world_size,
     )
-    print(train_loader)  # Added
-
     # --- BIRADS ---
     # class weight for class imbalance
     if birads == True:  # Added
-        print("Birads classification, compute class weights")  # Added
+        print("Birads classification - computing the class weights")  # Added
         balanced_weights = compute_classweights(
             train_loader.dataset, num_classes=num_classes
-        )  # Added
-        print(f"The class_weight using balanced method is:{balanced_weights}")  # Added\
+        )  # Added whole block
+        print(f"The class_weight using balanced method is:{balanced_weights}")  # Added
     else:
         balanced_weights = None
 
@@ -113,6 +112,7 @@ def main(rank, world_size, opt):
     )
 
     if opt.evaluate_model:
+        print("- Evaluation -") # Added
         if dataset != "CBIS_patches" and num_views == 2:
             net.add_top_blocks(num_classes=num_classes)
         net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
