@@ -6,7 +6,7 @@ import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 
 import wandb
-from models.hypercomplex_layers import PHConv
+from models.hypercomplex_layers import PHConv  # PHConv B
 
 sys.path.append("early-stopping-pytorch")
 import torch.distributed as dist
@@ -56,43 +56,26 @@ class Trainer:  # Added class_weight to the constructor
             self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
             self.val_criterion = nn.BCEWithLogitsLoss()
         else:
-            class_weight = (
-                torch.tensor(class_weight, dtype=torch.float32)
-                if class_weight is not None
-                else None
-            )  # Added - class_weight comesa as a list from main
-            self.criterion = nn.CrossEntropyLoss(
-                weight=class_weight
-            )  # Added, default False
+            # Added - class_weight comes as a list from main
+            class_weight = torch.tensor(class_weight, dtype=torch.float32) if class_weight is not None else None
+            self.criterion = nn.CrossEntropyLoss(weight=class_weight)  # Added, default False
             self.val_criterion = nn.CrossEntropyLoss()  # Not weighted
 
         if self.use_cuda:
             if pos_weight:
-                self.criterion.pos_weight = torch.tensor([pos_weight]).cuda(
-                    "cuda:%i" % self.gpu_num
-                )
+                self.criterion.pos_weight = torch.tensor([pos_weight]).cuda("cuda:%i" % self.gpu_num)
 
             if class_weight is not None:
-                # Already a tensor
-                # self.criterion.weight = torch.tensor(class_weight).cuda(
-                #     "cuda:%i" % self.gpu_num
-                # )  # Added - removed [] , no need for double []
-                self.criterion.weight = class_weight.cuda("cuda:%i" % self.gpu_num) # Added
+                # Already a tensor, this was a warning
+                # self.criterion.weight = torch.tensor(class_weight).cuda("cuda:%i" % self.gpu_num)  # Added - removed [] , no need for double []
+                self.criterion.weight = class_weight.cuda("cuda:%i" % self.gpu_num)  # Added
 
-            print(
-                f"[Proc{rank}]Running on GPU?",
-                self.use_cuda,
-                "- gpu_num: ",
-                self.gpu_num,
-            )
+            print(f"[Proc{rank}]Running on GPU?", self.use_cuda, "- gpu_num: ", self.gpu_num)
             self.net = net.cuda("cuda:%i" % self.gpu_num)
 
             if distributed:
                 self.net = DDP(
-                    self.net,
-                    device_ids=[self.gpu_num],
-                    output_device=self.gpu_num,
-                    find_unused_parameters=True,
+                    self.net, device_ids=[self.gpu_num], output_device=self.gpu_num, find_unused_parameters=True
                 )
         else:
             self.net = net
@@ -107,11 +90,29 @@ class Trainer:  # Added class_weight to the constructor
         early_stopping = EarlyStopping(
             patience=20,
             path=self.checkpoints_folder + "/best_" + run_name + ".pt",
-            rank=self.rank,
+            rank=self.rank
         )
+        # Added
+        UNFREEZE_EPOCH = 15
+        frozen_names = {
+            "conv1",
+            "bn1",
+            "layer1",
+            "layer2",
+            "layer3",
+            "layer4",
+        }
 
+        # Added
         for epoch in range(self.epochs):  # loop over the dataset multiple times
+            if epoch == UNFREEZE_EPOCH:
+                print(f"Epoch {epoch + 1}: ---Unfreezing the backbone---")
+                model = self.net.module if self.distributed else self.net
 
+                for name, layer in self.net.named_children():
+                    if name in frozen_names:
+                        for parameter in layer.parameters():
+                            parameter.requires_grad = True
             if self.distributed:
                 train_loader.sampler.set_epoch(epoch)
 
@@ -134,31 +135,41 @@ class Trainer:  # Added class_weight to the constructor
                     labels = labels.view((-1, 1)).to(torch.float32)
 
                 if self.use_cuda:
-                    inputs, labels = inputs.cuda("cuda:%i" % self.gpu_num), labels.cuda(
-                        "cuda:%i" % self.gpu_num
-                    )
+                    inputs, labels = inputs.cuda("cuda:%i" % self.gpu_num), labels.cuda("cuda:%i" % self.gpu_num)
 
-                self.optimizer.zero_grad()
+                # Resets the grad to zero before computing the new gradients via backproagation
+                # 1
+                self.optimizer.zero_grad() 
 
                 if self.num_views == 4:
                     inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
-
+                
+                # 2
                 outputs = self.net(inputs)
+                # 3
                 loss = self.criterion(outputs, labels)
 
                 if self.l1_reg:
                     # Add L1 regularization to A
-                    regularization_loss = 0.0
-                    for child in self.net.children():
-                        for layer in child.modules():
-                            if isinstance(layer, PHConv):
+                    regularization_loss = 0.0  # it never ran so it * with zero
+                    for child in self.net.children():  # top-level blocks: layer1, layer2, layer3, layer4, ...
+                        for layer in child.modules():  # everything nested inside that block, recursively
+                            if isinstance(layer, PHConv):  # Bug - this is not the same class as in layers
                                 for param in layer.a:
                                     regularization_loss += torch.sum(abs(param))
                     loss += 0.001 * regularization_loss
-
+                # 4 
                 loss.backward()
-                self.optimizer.step()
 
+                # Added — one-time gradient sanity check
+                if epoch == 0 and i == 0:
+                    for name, parameter in self.net.named_parameters():
+                        print(
+                            f"{name}: requires_grad={parameter.requires_grad}, has_gradient={parameter.grad is not None}"
+                        )
+                # 5
+                self.optimizer.step()
+                # 6
                 running_loss_train += loss.item()
 
             end = time.time()
@@ -184,9 +195,7 @@ class Trainer:  # Added class_weight to the constructor
                         labels = labels.view((-1, 1)).to(torch.float32)
 
                     if self.use_cuda:
-                        inputs, labels = inputs.cuda(
-                            "cuda:%i" % self.gpu_num
-                        ), labels.cuda("cuda:%i" % self.gpu_num)
+                        inputs, labels = inputs.cuda("cuda:%i" % self.gpu_num), labels.cuda("cuda:%i" % self.gpu_num)
 
                     if self.num_views == 4:
                         inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
@@ -198,7 +207,7 @@ class Trainer:  # Added class_weight to the constructor
                     # for multi-class (patch)
                     if self.num_classes == 1:
                         predicted = torch.sigmoid(eval_outputs) > 0.5
-                    else:
+                    else:  # adding to be softmax because our classes are mutualy exclusive
                         _, predicted = torch.max(eval_outputs.data, 1)
                         probs = torch.softmax(eval_outputs, dim=1)  # Added
                         y_probs = torch.cat((y_probs, probs.cpu()))  # Added
@@ -207,9 +216,7 @@ class Trainer:  # Added class_weight to the constructor
                     correct += (predicted == labels).sum().item()
                     acc = 100 * correct / total
 
-                    y_pred = torch.cat(
-                        (y_pred, predicted.view(predicted.shape[0]).cpu())
-                    )
+                    y_pred = torch.cat((y_pred, predicted.view(predicted.shape[0]).cpu()))
                     y_true = torch.cat((y_true, labels.view(labels.shape[0]).cpu()))
 
             if self.distributed:
@@ -231,9 +238,7 @@ class Trainer:  # Added class_weight to the constructor
                 if self.num_classes == 1:
                     auc = roc_auc_score(y_true, y_pred)
 
-                running_loss_train = (
-                    gathered[0]["loss_train"] + gathered[1]["loss_train"]
-                )
+                running_loss_train = gathered[0]["loss_train"] + gathered[1]["loss_train"]
                 running_loss_eval = gathered[0]["loss_eval"] + gathered[1]["loss_eval"]
 
                 i *= 2
@@ -251,9 +256,7 @@ class Trainer:  # Added class_weight to the constructor
                 bal_acc = balanced_accuracy_score(y_true_np, y_pred_np)
                 per_class_recall = recall_score(y_true_np, y_pred_np, average=None)
                 conf_matrix = confusion_matrix(y_true_np, y_pred_np)
-                macro_auc = roc_auc_score(
-                    y_true_np, y_probs_np, multi_class="ovr", average="macro"
-                )
+                macro_auc = roc_auc_score(y_true_np, y_probs_np, multi_class="ovr", average="macro")
 
             # Log metrics
             if self.rank == 0:
@@ -351,9 +354,7 @@ class Trainer:  # Added class_weight to the constructor
                     labels = labels.view((-1, 1)).to(torch.float32)
 
                 if self.use_cuda:
-                    inputs, labels = inputs.cuda("cuda:%i" % self.gpu_num), labels.cuda(
-                        "cuda:%i" % self.gpu_num
-                    )
+                    inputs, labels = inputs.cuda("cuda:%i" % self.gpu_num), labels.cuda("cuda:%i" % self.gpu_num)
 
                 if self.num_views == 4:
                     inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
@@ -375,9 +376,7 @@ class Trainer:  # Added class_weight to the constructor
 
         if self.num_classes == 1:
             auc = roc_auc_score(y_true, y_pred)
-            print(
-                "AUC %s on the test images: %.3f" % (self.net.__class__.__name__, auc)
-            )
+            print("AUC %s on the test images: %.3f" % (self.net.__class__.__name__, auc))
             wandb.log({"Test AUC": auc})
         else:
             y_true_np = y_true.numpy()
@@ -388,9 +387,7 @@ class Trainer:  # Added class_weight to the constructor
             bal_acc = balanced_accuracy_score(y_true_np, y_pred_np)
             per_class_recall = recall_score(y_true_np, y_pred_np, average=None)
             conf_matrix = confusion_matrix(y_true_np, y_pred_np)
-            macro_auc = roc_auc_score(
-                y_true_np, y_probs_np, multi_class="ovr", average="macro"
-            )
+            macro_auc = roc_auc_score(y_true_np, y_probs_np, multi_class="ovr", average="macro")
             print(f"Macro-F1: {macro_f1:.4f} | Balanced Acc: {bal_acc:.4f}")
             print(f"Per-class recall: {per_class_recall}")
             print(f"Confusion matrix:\n{conf_matrix}")

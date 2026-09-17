@@ -76,10 +76,12 @@ def main(rank, world_size, opt):
         num_classes = 5
     elif dataset == "INbreastBIRADS":  # Added
         num_classes = 5  # Added
-        birads = True # Added
-        print("- Multiclass classification -") # Added
+        birads = True  # Added
+        patch_weights = False
+        print("- Multiclass classification -")  # Added
     else:
         RuntimeError("Wrong dataset or not implemented")
+
     # DataLoader file in dataloaders.py
     train_loader, eval_loader = MyDataLoader(
         root=train_dir,
@@ -92,12 +94,12 @@ def main(rank, world_size, opt):
     )
     # --- BIRADS ---
     # class weight for class imbalance
+    # using the training dataset
     if birads == True:  # Added
         print("Birads classification - computing the class weights")  # Added
-        balanced_weights = compute_classweights(
-            train_loader.dataset, num_classes=num_classes
-        )  # Added whole block
+        balanced_weights = compute_classweights(train_loader.dataset, num_classes=num_classes)  # Added whole block
         print(f"The class_weight using balanced method is:{balanced_weights}")  # Added
+        print(f"birads={birads}, patch_weights={opt.patch_weights}")  # Added
     else:
         balanced_weights = None
 
@@ -112,7 +114,7 @@ def main(rank, world_size, opt):
     )
 
     if opt.evaluate_model:
-        print("- Evaluation -") # Added
+        print("- Evaluation -")  # Added
         if dataset != "CBIS_patches" and num_views == 2:
             net.add_top_blocks(num_classes=num_classes)
         net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
@@ -128,27 +130,28 @@ def main(rank, world_size, opt):
                 net = GetModel(str_model=model, n=n, num_classes=5)
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
                 net.add_top_blocks(num_classes=num_classes)
-
-            elif birads:  # Added - transferring from a deep binary output checkpoint
+            # TRANSFER LEARNING
+            elif birads:  # Added
+                print("---BIRADS---")
                 print(
                     "Loading weights of pretrained whole-image classifier from: ",
                     opt.model_state,
                 )
-                net = GetModel(
-                    str_model=model, n=n, num_classes=1
-                )  # Fine-tuning, it was binary
+                net = GetModel(str_model=model, n=n, num_classes=1)
                 net.add_top_blocks(num_classes=1)
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
                 net.linear = torch.nn.Linear(
                     1024, num_classes
                 )  # THEN swap only the head — a fresh module, not a reload
+                # Freeze backbone layers
+                for name, layer in net.named_children():
+                    if name in ["conv1", "bn1", "layer1", "layer2", "layer3", "layer4"]:
+                        for param in layer.parameters():
+                            param.requires_grad = False
 
             else:  # whole-image weights
                 net.add_top_blocks(num_classes=num_classes)
-                print(
-                    "Loading weights of pretrained whole-image classifier from ",
-                    opt.model_state,
-                )
+                print("Loading weights of pretrained whole-image classifier from ", opt.model_state)
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
 
     if rank == 0:
@@ -156,26 +159,41 @@ def main(rank, world_size, opt):
         wandb.config.update(opt, allow_val_change=True)
         wandb.watch(net)
 
+    # Added - Trainable parameters and all parameters
+    total = sum(p.numel() for p in net.parameters())
+    print(f"[Proc{rank}]Number of total parameters:", total)
     params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-    print(f"[Proc{rank}]Number of parameters:", params)
-    print()
+    print(f"[Proc{rank}]Number of trainable parameters:", params)
 
-    checkpoint_folder = "/content/drive/MyDrive/Projects/DeepLearningMaster/checkpoints/birads"  # Added new checkpoints for birads
+    checkpoint_folder = (
+        "/content/drive/MyDrive/Projects/DeepLearningMaster/checkpoints/birads"  # Added new checkpoints for birads
+    )
     if not os.path.isdir(checkpoint_folder):
         os.makedirs(checkpoint_folder)
 
+    # Check the model which parameters are frozen
+    for name, parameter in net.named_parameters():
+        print(f"{name}: " f"requires_grad={parameter.requires_grad}, " f"has_gradient={parameter.grad is not None}")
+
     # Initialize optimizers
     if opt.optim == "SGD":
-        optimizer = optim.SGD(
-            net.parameters(),
-            lr=lr,
-            momentum=opt.momentum,
-            weight_decay=opt.weight_decay,
-        )
+        optimizer = optim.SGD(net.parameters(), lr=lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
+
     if opt.optim == "Adam":
-        optimizer = optim.Adam(
-            net.parameters(), lr=lr, weight_decay=opt.weight_decay, betas=(0.5, 0.999)
-        )
+        # check if that is the Birads case
+        if birads == True:  # Added
+            # fmt: off
+            freezing_params = [p for name, p in net.named_parameters() if name.split(".")[0] in ["conv1", "bn1", "layer1", "layer2", "layer3", "layer4"]]
+            train_params = [p for name, p in net.named_parameters() if name.split(".")[0] not in ["conv1", "bn1", "layer1", "layer2", "layer3", "layer4"]]
+            optimizer = optim.Adam(
+                [{"params": freezing_params, "lr": lr * 0.1}, {"params": train_params, "lr": lr}],
+                weight_decay=opt.weight_decay,
+                betas=(0.5, 0.999))
+            # fmt: on
+
+        else:  # It's not BIRADS
+            # set the optimizer
+            optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=opt.weight_decay, betas=(0.5, 0.999))
 
     """Train model"""
     trainer = Trainer(
@@ -210,28 +228,18 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, default=2, help="n parameter for PHC layers")
     parser.add_argument("--optim", type=str, default="Adam")
     parser.add_argument("--l1_reg", type=bool, default=False)
-    parser.add_argument(
-        "--train_dir", type=str, default="./data/", help="Folder containg training data"
-    )
+    parser.add_argument("--train_dir", type=str, default="./data/", help="Folder containg training data")
 
-    parser.add_argument(
-        "--Dataset", type=str, default="SVHN", help="CBIS_patches, CBIS, INbreast"
-    )
-    parser.add_argument(
-        "--num_views", type=int, default=2, help="Number of views in input"
-    )
+    parser.add_argument("--Dataset", type=str, default="SVHN", help="CBIS_patches, CBIS, INbreast")
+    parser.add_argument("--num_views", type=int, default=2, help="Number of views in input")
     parser.add_argument("--model", type=str, default="resnet20", help="Models: ...")
     parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=0.00001)
     parser.add_argument("--weight_decay", type=float, default=5e-4)
     parser.add_argument("--momentum", type=float, default=0.9)
-    parser.add_argument(
-        "--model_state", help="model weights for pretraining or testing"
-    )
-    parser.add_argument(
-        "--pos_weight", type=float, help="pos_weight for BCE in case of unbalanced data"
-    )
+    parser.add_argument("--model_state", help="model weights for pretraining or testing")
+    parser.add_argument("--pos_weight", type=float, help="pos_weight for BCE in case of unbalanced data")
     parser.add_argument(
         "--shared",
         type=bool,
@@ -251,9 +259,7 @@ if __name__ == "__main__":
         default=False,
         help="True for distributed training with DistributedDataParallel",
     )
-    parser.add_argument(
-        "--gpu_nums", help="indices of gpus to use for distributed training"
-    )
+    parser.add_argument("--gpu_nums", help="indices of gpus to use for distributed training")
 
     parser.add_argument(
         "--TextArgs",
