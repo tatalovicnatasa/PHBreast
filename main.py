@@ -77,11 +77,10 @@ def main(rank, world_size, opt):
     elif dataset == "INbreastBIRADS":  # Added
         num_classes = 5  # Added
         birads = True  # Added
-        patch_weights = False
+        opt.patch_weights = False # Added
         print("- Multiclass classification -")  # Added
     else:
-        RuntimeError("Wrong dataset or not implemented")
-
+        raise RuntimeError("Wrong dataset or not implemented") # Added
     # DataLoader file in dataloaders.py
     train_loader, eval_loader = MyDataLoader(
         root=train_dir,
@@ -173,7 +172,7 @@ def main(rank, world_size, opt):
 
     # Check the model which parameters are frozen
     for name, parameter in net.named_parameters():
-        print(f"{name}: " f"requires_grad={parameter.requires_grad}, " f"has_gradient={parameter.grad is not None}")
+        print(f"{name}: requires_grad={parameter.requires_grad}")
 
     # Initialize optimizers
     if opt.optim == "SGD":
