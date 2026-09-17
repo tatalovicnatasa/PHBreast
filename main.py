@@ -171,8 +171,8 @@ def main(rank, world_size, opt):
         os.makedirs(checkpoint_folder)
 
     # Check the model which parameters are frozen
-    for name, parameter in net.named_parameters():
-        print(f"{name}: requires_grad={parameter.requires_grad}")
+    # for name, parameter in net.named_parameters():
+    #     print(f"{name}: requires_grad={parameter.requires_grad}")
 
     # Initialize optimizers
     if opt.optim == "SGD":

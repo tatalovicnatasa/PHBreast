@@ -166,12 +166,12 @@ class Trainer:  # Added class_weight to the constructor
                 # 4 
                 loss.backward()
 
-                # Added — one-time gradient sanity check
-                if epoch == 0 and i == 0:
-                    for name, parameter in self.net.named_parameters():
-                        print(
-                            f"{name}: requires_grad={parameter.requires_grad}, has_gradient={parameter.grad is not None}"
-                        )
+                # # Added — one-time gradient sanity check
+                # if epoch == 0 and i == 0:
+                #     for name, parameter in self.net.named_parameters():
+                #         print(
+                #             f"{name}: requires_grad={parameter.requires_grad}, has_gradient={parameter.grad is not None}"
+                #         )
                 # 5
                 self.optimizer.step()
                 # 6
