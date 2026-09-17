@@ -33,9 +33,7 @@ class PHMLinear(nn.Module):
         self.A = nn.Parameter(torch.nn.init.xavier_uniform_(torch.zeros((n, n, n))))
 
         self.S = nn.Parameter(
-            torch.nn.init.xavier_uniform_(
-                torch.zeros((n, self.out_features // n, self.in_features // n))
-            )
+            torch.nn.init.xavier_uniform_(torch.zeros((n, self.out_features // n, self.in_features // n)))
         )
 
         self.weight = torch.zeros((self.out_features, self.in_features))
@@ -82,9 +80,7 @@ class PHMLinear(nn.Module):
 
 
 class PHConv(Module):
-    def __init__(
-        self, n, in_features, out_features, kernel_size, padding=0, stride=1, cuda=True
-    ):
+    def __init__(self, n, in_features, out_features, kernel_size, padding=0, stride=1, cuda=True):
         super(PHConv, self).__init__()
         self.n = n
         self.in_features = in_features
@@ -118,17 +114,13 @@ class PHConv(Module):
     def kronecker_product1(self, A, F):
         siz1 = torch.Size(torch.tensor(A.shape[-2:]) * torch.tensor(F.shape[-4:-2]))
         siz2 = torch.Size(torch.tensor(F.shape[-2:]))
-        res = A.unsqueeze(-1).unsqueeze(-3).unsqueeze(-1).unsqueeze(-1) * F.unsqueeze(
-            -4
-        ).unsqueeze(-6)
+        res = A.unsqueeze(-1).unsqueeze(-3).unsqueeze(-1).unsqueeze(-1) * F.unsqueeze(-4).unsqueeze(-6)
         siz0 = res.shape[:1]
         out = res.reshape(siz0 + siz1 + siz2)
         return out
 
     def kronecker_product2(self):
-        H = torch.zeros(
-            (self.out_features, self.in_features, self.kernel_size, self.kernel_size)
-        )
+        H = torch.zeros((self.out_features, self.in_features, self.kernel_size, self.kernel_size))
         if self.cuda:
             H = H.cuda()
         for i in range(self.n):
@@ -146,9 +138,7 @@ class PHConv(Module):
 
         input = input.type(dtype=self.weight.type())
 
-        return F.conv2d(
-            input, weight=self.weight, stride=self.stride, padding=self.padding
-        )
+        return F.conv2d(input, weight=self.weight, stride=self.stride, padding=self.padding)
 
     def extra_repr(self) -> str:
         return "in_features={}, out_features={}, bias={}".format(
@@ -228,9 +218,7 @@ class KroneckerConv(Module):
             self.scale_param = None
 
         if self.rotation:
-            self.zero_kernel = Parameter(
-                torch.zeros(self.r_weight.shape), requires_grad=False
-            )
+            self.zero_kernel = Parameter(torch.zeros(self.r_weight.shape), requires_grad=False)
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
@@ -503,9 +491,7 @@ class QuaternionConv(Module):
             self.scale_param = None
 
         if self.rotation:
-            self.zero_kernel = Parameter(
-                torch.zeros(self.r_weight.shape), requires_grad=False
-            )
+            self.zero_kernel = Parameter(torch.zeros(self.r_weight.shape), requires_grad=False)
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
@@ -623,16 +609,12 @@ class QuaternionLinearAutograd(Module):
         self.scale = scale
 
         if self.scale:
-            self.scale_param = Parameter(
-                torch.Tensor(self.in_features, self.out_features)
-            )
+            self.scale_param = Parameter(torch.Tensor(self.in_features, self.out_features))
         else:
             self.scale_param = None
 
         if self.rotation:
-            self.zero_kernel = Parameter(
-                torch.zeros(self.r_weight.shape), requires_grad=False
-            )
+            self.zero_kernel = Parameter(torch.zeros(self.r_weight.shape), requires_grad=False)
 
         if bias:
             self.bias = Parameter(torch.Tensor(self.out_features * 4))
@@ -743,9 +725,7 @@ class QuaternionLinear(Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        winit = {"quaternion": quaternion_init, "unitary": unitary_init}[
-            self.weight_init
-        ]
+        winit = {"quaternion": quaternion_init, "unitary": unitary_init}[self.weight_init]
         if self.bias is not None:
             self.bias.data.fill_(0)
         affect_init(

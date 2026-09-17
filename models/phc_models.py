@@ -12,18 +12,17 @@ import torch.nn.functional as F
 
 from utils.utils import load_weights
 
+# adding models to path
 sys.path.append("./models")
-from hypercomplex_layers import PHConv
+from hypercomplex_layers import PHConv  # PHConv A
 
 
-class BasicBlock(nn.Module):
+class BasicBlock(nn.Module):  # inheritance
     expansion = 1
 
     def __init__(self, in_planes, planes, stride=1, n=4):
-        super(BasicBlock, self).__init__()
-        self.conv1 = PHConv(
-            n, in_planes, planes, kernel_size=3, stride=stride, padding=1
-        )
+        super(BasicBlock, self).__init__()  # from parent class
+        self.conv1 = PHConv(n, in_planes, planes, kernel_size=3, stride=stride, padding=1)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = PHConv(n, planes, planes, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(planes)
@@ -64,9 +63,7 @@ class Bottleneck(nn.Module):
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != self.expansion * planes:
             self.shortcut = nn.Sequential(
-                PHConv(
-                    n, in_planes, self.expansion * planes, kernel_size=1, stride=stride
-                ),
+                PHConv(n, in_planes, self.expansion * planes, kernel_size=1, stride=stride),
                 nn.BatchNorm2d(self.expansion * planes),
             )
 
@@ -122,7 +119,7 @@ class PHCResNet(nn.Module):
         if not before_gap_output and not gap_output:
             self.linear = nn.Linear(512 * block.expansion, num_classes)
 
-    def add_top_blocks(self, num_classes=1):
+    def add_top_blocks(self, num_classes=1):  # The refiner block
         # print("Adding top blocks with n = ", self.n)
         self.layer5 = self._make_layer(Bottleneck, 512, 2, stride=2, n=self.n)
         self.layer6 = self._make_layer(Bottleneck, 512, 2, stride=2, n=self.n)
@@ -160,7 +157,7 @@ class PHCResNet(nn.Module):
 
         if self.gap_output:
             return out
-
+        # raw logits
         out = self.linear(out)
 
         if self.visualize:
@@ -328,14 +325,10 @@ class PHYSEnet(nn.Module):
                      In the latter case also Classifier branches will be initialized.
     """
 
-    def __init__(
-        self, n=2, num_classes=1, weights=None, patch_weights=True, visualize=False
-    ):
+    def __init__(self, n=2, num_classes=1, weights=None, patch_weights=True, visualize=False):
         super(PHYSEnet, self).__init__()
         self.visualize = visualize
-        self.phcresnet18 = PHCResNet18(
-            n=2, num_classes=num_classes, channels=2, before_gap_output=True
-        )
+        self.phcresnet18 = PHCResNet18(n=2, num_classes=num_classes, channels=2, before_gap_output=True)
 
         if weights:
             print("Loading weights for phcresnet18 from ", weights)
@@ -393,6 +386,4 @@ def PHCResNet18(
 
 
 def PHCResNet50(channels=4, n=4, num_classes=10):
-    return PHCResNet(
-        Bottleneck, [3, 4, 6, 3], channels=channels, n=n, num_classes=num_classes
-    )
+    return PHCResNet(Bottleneck, [3, 4, 6, 3], channels=channels, n=n, num_classes=num_classes)

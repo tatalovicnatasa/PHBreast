@@ -32,9 +32,7 @@ class MyDataset(Dataset):
         return img, label
 
 
-def MyDataLoader(
-    root, name, batch_size, num_workers=1, distributed=False, rank=0, world_size=None
-):
+def MyDataLoader(root, name, batch_size, num_workers=1, distributed=False, rank=0, world_size=None):
     print("----Loading dataset----")
     TRAIN_TRANSFORM_IMG = torchvision.transforms.Compose(
         [

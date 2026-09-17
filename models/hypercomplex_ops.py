@@ -48,10 +48,7 @@ def check_input(input):
         nb_hidden = input.size()[1]
 
     if nb_hidden % 4 != 0:
-        raise RuntimeError(
-            "Quaternion Tensors must be divisible by 4."
-            " input.size()[1] = " + str(nb_hidden)
-        )
+        raise RuntimeError("Quaternion Tensors must be divisible by 4." " input.size()[1] = " + str(nb_hidden))
 
 
 #
@@ -179,15 +176,15 @@ def kronecker_conv(
         mat1 = torch.eye(4, requires_grad=False).view(4, 4, 1, 1)
 
     # Define the four matrices that summed up build the Hamilton product rule.
-    mat2 = torch.tensor(
-        [[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]], requires_grad=False
-    ).view(4, 4, 1, 1)
-    mat3 = torch.tensor(
-        [[0, 0, -1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, -1, 0, 0]], requires_grad=False
-    ).view(4, 4, 1, 1)
-    mat4 = torch.tensor(
-        [[0, 0, 0, -1], [0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0]], requires_grad=False
-    ).view(4, 4, 1, 1)
+    mat2 = torch.tensor([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]], requires_grad=False).view(
+        4, 4, 1, 1
+    )
+    mat3 = torch.tensor([[0, 0, -1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, -1, 0, 0]], requires_grad=False).view(
+        4, 4, 1, 1
+    )
+    mat4 = torch.tensor([[0, 0, 0, -1], [0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0]], requires_grad=False).view(
+        4, 4, 1, 1
+    )
 
     if cuda:
         mat1, mat2, mat3, mat4 = mat1.cuda(), mat2.cuda(), mat3.cuda(), mat4.cuda()
@@ -207,14 +204,9 @@ def kronecker_conv(
     elif input.dim() == 5:
         convfunc = F.conv3d
     else:
-        raise Exception(
-            "The convolutional input is either 3, 4 or 5 dimensions."
-            " input.dim = " + str(input.dim())
-        )
+        raise Exception("The convolutional input is either 3, 4 or 5 dimensions." " input.dim = " + str(input.dim()))
 
-    return convfunc(
-        input, cat_kernels_4_quaternion, bias, stride, padding, dilatation, groups
-    )
+    return convfunc(input, cat_kernels_4_quaternion, bias, stride, padding, dilatation, groups)
 
 
 def quaternion_conv(
@@ -238,9 +230,7 @@ def quaternion_conv(
     cat_kernels_4_j = torch.cat([j_weight, k_weight, r_weight, -i_weight], dim=1)
     cat_kernels_4_k = torch.cat([k_weight, -j_weight, i_weight, r_weight], dim=1)
 
-    cat_kernels_4_quaternion = torch.cat(
-        [cat_kernels_4_r, cat_kernels_4_i, cat_kernels_4_j, cat_kernels_4_k], dim=0
-    )
+    cat_kernels_4_quaternion = torch.cat([cat_kernels_4_r, cat_kernels_4_i, cat_kernels_4_j, cat_kernels_4_k], dim=0)
 
     if input.dim() == 3:
         convfunc = F.conv1d
@@ -249,14 +239,9 @@ def quaternion_conv(
     elif input.dim() == 5:
         convfunc = F.conv3d
     else:
-        raise Exception(
-            "The convolutional input is either 3, 4 or 5 dimensions."
-            " input.dim = " + str(input.dim())
-        )
+        raise Exception("The convolutional input is either 3, 4 or 5 dimensions." " input.dim = " + str(input.dim()))
 
-    return convfunc(
-        input, cat_kernels_4_quaternion, bias, stride, padding, dilatation, groups
-    )
+    return convfunc(input, cat_kernels_4_quaternion, bias, stride, padding, dilatation, groups)
 
 
 def quaternion_transpose_conv(
@@ -281,9 +266,7 @@ def quaternion_transpose_conv(
     cat_kernels_4_i = torch.cat([i_weight, r_weight, -k_weight, j_weight], dim=1)
     cat_kernels_4_j = torch.cat([j_weight, k_weight, r_weight, -i_weight], dim=1)
     cat_kernels_4_k = torch.cat([k_weight, -j_weight, i_weight, r_weight], dim=1)
-    cat_kernels_4_quaternion = torch.cat(
-        [cat_kernels_4_r, cat_kernels_4_i, cat_kernels_4_j, cat_kernels_4_k], dim=0
-    )
+    cat_kernels_4_quaternion = torch.cat([cat_kernels_4_r, cat_kernels_4_i, cat_kernels_4_j, cat_kernels_4_k], dim=0)
 
     if input.dim() == 3:
         convfunc = F.conv_transpose1d
@@ -292,10 +275,7 @@ def quaternion_transpose_conv(
     elif input.dim() == 5:
         convfunc = F.conv_transpose3d
     else:
-        raise Exception(
-            "The convolutional input is either 3, 4 or 5 dimensions."
-            " input.dim = " + str(input.dim())
-        )
+        raise Exception("The convolutional input is either 3, 4 or 5 dimensions." " input.dim = " + str(input.dim()))
 
     return convfunc(
         input,
@@ -408,12 +388,8 @@ def quaternion_conv_rotation(
                 dim=1,
             )
 
-        zero_kernel2 = torch.cat(
-            [zero_kernel, zero_kernel, zero_kernel, zero_kernel], dim=1
-        )
-        global_rot_kernel = torch.cat(
-            [zero_kernel2, rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=0
-        )
+        zero_kernel2 = torch.cat([zero_kernel, zero_kernel, zero_kernel, zero_kernel], dim=1)
+        global_rot_kernel = torch.cat([zero_kernel2, rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=0)
 
     else:
         if scale is not None:
@@ -442,15 +418,9 @@ def quaternion_conv_rotation(
                 dim=0,
             )
         else:
-            rot_kernel_1 = torch.cat(
-                [1.0 - (square_j + square_k), (ij - rk), (ik + rj)], dim=0
-            )
-            rot_kernel_2 = torch.cat(
-                [(ij + rk), 1.0 - (square_i + square_k), (jk - ri)], dim=0
-            )
-            rot_kernel_3 = torch.cat(
-                [(ik - rj), (jk + ri), (1.0 - (square_i + square_j))], dim=0
-            )
+            rot_kernel_1 = torch.cat([1.0 - (square_j + square_k), (ij - rk), (ik + rj)], dim=0)
+            rot_kernel_2 = torch.cat([(ij + rk), 1.0 - (square_i + square_k), (jk - ri)], dim=0)
+            rot_kernel_3 = torch.cat([(ik - rj), (jk + ri), (1.0 - (square_i + square_j))], dim=0)
 
         global_rot_kernel = torch.cat([rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=0)
 
@@ -465,10 +435,7 @@ def quaternion_conv_rotation(
     elif input.dim() == 5:
         convfunc = F.conv3d
     else:
-        raise Exception(
-            "The convolutional input is either 3, 4 or 5 dimensions."
-            " input.dim = " + str(input.dim())
-        )
+        raise Exception("The convolutional input is either 3, 4 or 5 dimensions." " input.dim = " + str(input.dim()))
 
     return convfunc(input, global_rot_kernel, bias, stride, padding, dilatation, groups)
 
@@ -529,20 +496,12 @@ def quaternion_transpose_conv_rotation(
     jk = norm_factor * j_weight * k_weight
 
     if quaternion_format:
-        rot_kernel_1 = torch.cat(
-            [zero_kernel, 1.0 - (square_j + square_k), ij - rk, ik + rj], dim=1
-        )
-        rot_kernel_2 = torch.cat(
-            [zero_kernel, ij + rk, 1.0 - (square_i + square_k), jk - ri], dim=1
-        )
-        rot_kernel_3 = torch.cat(
-            [zero_kernel, ik - rj, jk + ri, 1.0 - (square_i + square_j)], dim=1
-        )
+        rot_kernel_1 = torch.cat([zero_kernel, 1.0 - (square_j + square_k), ij - rk, ik + rj], dim=1)
+        rot_kernel_2 = torch.cat([zero_kernel, ij + rk, 1.0 - (square_i + square_k), jk - ri], dim=1)
+        rot_kernel_3 = torch.cat([zero_kernel, ik - rj, jk + ri, 1.0 - (square_i + square_j)], dim=1)
 
         zero_kernel2 = torch.zeros(rot_kernel_1.shape).cuda()
-        global_rot_kernel = torch.cat(
-            [zero_kernel2, rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=0
-        )
+        global_rot_kernel = torch.cat([zero_kernel2, rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=0)
     else:
         rot_kernel_1 = torch.cat([1.0 - (square_j + square_k), ij - rk, ik + rj], dim=1)
         rot_kernel_2 = torch.cat([ij + rk, 1.0 - (square_i + square_k), jk - ri], dim=1)
@@ -556,10 +515,7 @@ def quaternion_transpose_conv_rotation(
     elif input.dim() == 5:
         convfunc = F.conv_transpose3d
     else:
-        raise Exception(
-            "The convolutional input is either 3, 4 or 5 dimensions."
-            " input.dim = " + str(input.dim())
-        )
+        raise Exception("The convolutional input is either 3, 4 or 5 dimensions." " input.dim = " + str(input.dim()))
 
     return convfunc(
         input,
@@ -588,9 +544,7 @@ def quaternion_linear(input, r_weight, i_weight, j_weight, k_weight, bias=True):
     cat_kernels_4_i = torch.cat([i_weight, r_weight, -k_weight, j_weight], dim=0)
     cat_kernels_4_j = torch.cat([j_weight, k_weight, r_weight, -i_weight], dim=0)
     cat_kernels_4_k = torch.cat([k_weight, -j_weight, i_weight, r_weight], dim=0)
-    cat_kernels_4_quaternion = torch.cat(
-        [cat_kernels_4_r, cat_kernels_4_i, cat_kernels_4_j, cat_kernels_4_k], dim=1
-    )
+    cat_kernels_4_quaternion = torch.cat([cat_kernels_4_r, cat_kernels_4_i, cat_kernels_4_j, cat_kernels_4_k], dim=1)
 
     if input.dim() == 2:
 
@@ -699,12 +653,8 @@ def quaternion_linear_rotation(
                 dim=0,
             )
 
-        zero_kernel2 = torch.cat(
-            [zero_kernel, zero_kernel, zero_kernel, zero_kernel], dim=0
-        )
-        global_rot_kernel = torch.cat(
-            [zero_kernel2, rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=1
-        )
+        zero_kernel2 = torch.cat([zero_kernel, zero_kernel, zero_kernel, zero_kernel], dim=0)
+        global_rot_kernel = torch.cat([zero_kernel2, rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=1)
 
     else:
         if scale is not None:
@@ -733,15 +683,9 @@ def quaternion_linear_rotation(
                 dim=0,
             )
         else:
-            rot_kernel_1 = torch.cat(
-                [1.0 - (square_j + square_k), (ij - rk), (ik + rj)], dim=0
-            )
-            rot_kernel_2 = torch.cat(
-                [(ij + rk), 1.0 - (square_i + square_k), (jk - ri)], dim=0
-            )
-            rot_kernel_3 = torch.cat(
-                [(ik - rj), (jk + ri), (1.0 - (square_i + square_j))], dim=0
-            )
+            rot_kernel_1 = torch.cat([1.0 - (square_j + square_k), (ij - rk), (ik + rj)], dim=0)
+            rot_kernel_2 = torch.cat([(ij + rk), 1.0 - (square_i + square_k), (jk - ri)], dim=0)
+            rot_kernel_3 = torch.cat([(ik - rj), (jk + ri), (1.0 - (square_i + square_j))], dim=0)
 
         global_rot_kernel = torch.cat([rot_kernel_1, rot_kernel_2, rot_kernel_3], dim=1)
 
@@ -788,9 +732,7 @@ class QuaternionLinearFunction(torch.autograd.Function):
     def backward(ctx, grad_output):
 
         input, r_weight, i_weight, j_weight, k_weight, bias = ctx.saved_tensors
-        grad_input = (
-            grad_weight_r
-        ) = grad_weight_i = grad_weight_j = grad_weight_k = grad_bias = None
+        grad_input = grad_weight_r = grad_weight_i = grad_weight_j = grad_weight_k = grad_bias = None
 
         input_r = torch.cat([r_weight, -i_weight, -j_weight, -k_weight], dim=0)
         input_i = torch.cat([i_weight, r_weight, -k_weight, j_weight], dim=0)
@@ -809,9 +751,7 @@ class QuaternionLinearFunction(torch.autograd.Function):
         input_i = torch.cat([i, r, -k, j], dim=0)
         input_j = torch.cat([j, k, r, -i], dim=0)
         input_k = torch.cat([k, -j, i, r], dim=0)
-        input_mat = Variable(
-            torch.cat([input_r, input_i, input_j, input_k], dim=1), requires_grad=False
-        )
+        input_mat = Variable(torch.cat([input_r, input_i, input_j, input_k], dim=1), requires_grad=False)
 
         r = get_r(grad_output)
         i = get_i(grad_output)
@@ -829,18 +769,10 @@ class QuaternionLinearFunction(torch.autograd.Function):
             grad_weight = grad_mat.permute(1, 0).mm(input_mat).permute(1, 0)
             unit_size_x = r_weight.size(0)
             unit_size_y = r_weight.size(1)
-            grad_weight_r = grad_weight.narrow(0, 0, unit_size_x).narrow(
-                1, 0, unit_size_y
-            )
-            grad_weight_i = grad_weight.narrow(0, 0, unit_size_x).narrow(
-                1, unit_size_y, unit_size_y
-            )
-            grad_weight_j = grad_weight.narrow(0, 0, unit_size_x).narrow(
-                1, unit_size_y * 2, unit_size_y
-            )
-            grad_weight_k = grad_weight.narrow(0, 0, unit_size_x).narrow(
-                1, unit_size_y * 3, unit_size_y
-            )
+            grad_weight_r = grad_weight.narrow(0, 0, unit_size_x).narrow(1, 0, unit_size_y)
+            grad_weight_i = grad_weight.narrow(0, 0, unit_size_x).narrow(1, unit_size_y, unit_size_y)
+            grad_weight_j = grad_weight.narrow(0, 0, unit_size_x).narrow(1, unit_size_y * 2, unit_size_y)
+            grad_weight_k = grad_weight.narrow(0, 0, unit_size_x).narrow(1, unit_size_y * 3, unit_size_y)
         if ctx.needs_input_grad[5]:
             grad_bias = grad_output.sum(0).squeeze(0)
 
@@ -980,9 +912,7 @@ def random_init(in_features, out_features, rng, kernel_size=None, criterion="glo
     return (weight_r, weight_i, weight_j, weight_k)
 
 
-def quaternion_init(
-    in_features, out_features, rng, kernel_size=None, criterion="glorot"
-):
+def quaternion_init(in_features, out_features, rng, kernel_size=None, criterion="glorot"):
 
     if kernel_size is not None:
         receptive_field = np.prod(kernel_size)
@@ -1041,18 +971,11 @@ def create_dropout_mask(dropout_p, size, rng, as_type, operation="linear"):
         mask = rng.binomial(n=1, p=1 - dropout_p, size=size)
         return Variable(torch.from_numpy(mask).type(as_type))
     else:
-        raise Exception(
-            "create_dropout_mask accepts only 'linear'. Found operation = "
-            + str(operation)
-        )
+        raise Exception("create_dropout_mask accepts only 'linear'. Found operation = " + str(operation))
 
 
 def affect_init(r_weight, i_weight, j_weight, k_weight, init_func, rng, init_criterion):
-    if (
-        r_weight.size() != i_weight.size()
-        or r_weight.size() != j_weight.size()
-        or r_weight.size() != k_weight.size()
-    ):
+    if r_weight.size() != i_weight.size() or r_weight.size() != j_weight.size() or r_weight.size() != k_weight.size():
         raise ValueError(
             "The real and imaginary weights "
             "should have the same size . Found: r:"
@@ -1066,14 +989,9 @@ def affect_init(r_weight, i_weight, j_weight, k_weight, init_func, rng, init_cri
         )
 
     elif r_weight.dim() != 2:
-        raise Exception(
-            "affect_init accepts only matrices. Found dimension = "
-            + str(r_weight.dim())
-        )
+        raise Exception("affect_init accepts only matrices. Found dimension = " + str(r_weight.dim()))
     kernel_size = None
-    r, i, j, k = init_func(
-        r_weight.size(0), r_weight.size(1), rng, kernel_size, init_criterion
-    )
+    r, i, j, k = init_func(r_weight.size(0), r_weight.size(1), rng, kernel_size, init_criterion)
     r, i, j, k = (
         torch.from_numpy(r),
         torch.from_numpy(i),
@@ -1086,14 +1004,8 @@ def affect_init(r_weight, i_weight, j_weight, k_weight, init_func, rng, init_cri
     k_weight.data = k.type_as(k_weight.data)
 
 
-def affect_init_conv(
-    r_weight, i_weight, j_weight, k_weight, kernel_size, init_func, rng, init_criterion
-):
-    if (
-        r_weight.size() != i_weight.size()
-        or r_weight.size() != j_weight.size()
-        or r_weight.size() != k_weight.size()
-    ):
+def affect_init_conv(r_weight, i_weight, j_weight, k_weight, kernel_size, init_func, rng, init_criterion):
+    if r_weight.size() != i_weight.size() or r_weight.size() != j_weight.size() or r_weight.size() != k_weight.size():
         raise ValueError(
             "The real and imaginary weights "
             "should have the same size . Found: r:"

@@ -28,9 +28,7 @@ def GetModel(
     if str_model == "resnet18":
         return real_models.ResNet18(num_classes, channels=n, visualize=visualize)
     elif str_model == "phcresnet18":
-        return phc_models.PHCResNet18(
-            channels=2, n=n, num_classes=num_classes, visualize=visualize
-        )
+        return phc_models.PHCResNet18(channels=2, n=n, num_classes=num_classes, visualize=visualize)
 
     if str_model == "resnet50":
         return real_models.ResNet50(num_classes, channels=n)
@@ -40,13 +38,9 @@ def GetModel(
     ## Four-view models ##
 
     if str_model == "sbonet":
-        return real_models.SEnet(
-            shared=shared, num_classes=num_classes, weights=weights
-        )
+        return real_models.SEnet(shared=shared, num_classes=num_classes, weights=weights)
     elif str_model == "physbonet":
-        return phc_models.PHYSBOnet(
-            n=n, shared=shared, num_classes=num_classes, weights=weights
-        )
+        return phc_models.PHYSBOnet(n=n, shared=shared, num_classes=num_classes, weights=weights)
 
     if str_model == "senet":
         return real_models.SEnet(
