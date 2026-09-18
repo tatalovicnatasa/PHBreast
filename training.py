@@ -92,7 +92,8 @@ class Trainer:  # Added class_weight to the constructor
             rank=self.rank
         )
         # Added
-        UNFREEZE_EPOCH = 15
+        UNFREEZE_EPOCH = self.epochs
+        
         frozen_names = {
             "conv1",
             "bn1",
@@ -104,23 +105,25 @@ class Trainer:  # Added class_weight to the constructor
 
         # Added
         for epoch in range(self.epochs):  # loop over the dataset multiple times
-            if epoch == UNFREEZE_EPOCH:
-                print(f"Epoch {epoch + 1}: ---Unfreezing the backbone---")
-                model = self.net.module if self.distributed else self.net
-                if self.rank == 0: # Added 
-                    print("Unfreezing BIRADS backbone") # Added 
-                    
-                for name, layer in model.named_children(): #Added
-                    if name in frozen_names:
-                        for parameter in layer.parameters():
-                            parameter.requires_grad = True
+        
+            model = self.net.module if self.distributed else self.net
+                
+            frozen_ok = all(
+                not p.requires_grad
+                for name, layer in model.named_children() if name in frozen_names
+                for p in layer.parameters()
+            )
+            if not frozen_ok and self.rank == 0:
+                print(f"WARNING - Epoch {epoch + 1}: backbone unexpectedly unfrozen!")
+            elif epoch in (0, self.epochs - 1) and self.rank == 0:
+                print(f"Epoch {epoch + 1}: backbone frozen = {frozen_ok}")
 
             if self.distributed:
                 train_loader.sampler.set_epoch(epoch)
 
             if self.distributed:
-                dist.barrier() # all processes use the same trainability state
-            
+                dist.barrier()  # all processes use the same trainability state
+                    
             start = time.time()
             running_loss_train = 0.0
             running_loss_eval = 0.0
