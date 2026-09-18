@@ -81,6 +81,10 @@ def main(rank, world_size, opt):
         print("- Multiclass classification -")  # Added
     else:
         raise RuntimeError("Wrong dataset or not implemented") # Added
+
+    # New added
+    ordinal = True if birads else False
+
     # DataLoader file in dataloaders.py
     train_loader, eval_loader = MyDataLoader(
         root=train_dir,
@@ -140,8 +144,11 @@ def main(rank, world_size, opt):
                 net.add_top_blocks(num_classes=1)
                 net.load_state_dict(torch.load(opt.model_state, map_location="cpu"))
                 net.linear = torch.nn.Linear(
-                    1024, num_classes
+                    # 1024, num_classes
+                    1024, (num_classes - 1) if ordinal else num_classes
+
                 )  # THEN swap only the head — a fresh module, not a reload
+                print(f"ordinal={ordinal} - net.linear = {net.linear}")  
                 # Freeze backbone layers
                 for name, layer in net.named_children():
                     if name in ["conv1", "bn1", "layer1", "layer2", "layer3", "layer4"]:
@@ -210,6 +217,7 @@ def main(rank, world_size, opt):
         rank=rank,
         world_size=world_size,
         class_weight=balanced_weights,
+        ordinal=ordinal,  # Added
     )
 
     if opt.evaluate_model:

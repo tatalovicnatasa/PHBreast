@@ -6,6 +6,7 @@ import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 import wandb
 from models.hypercomplex_layers import PHConv  # PHConv B
+from utils.ordinal import corn_loss, corn_label_from_logits, corn_probas_from_logits  # Added
 
 sys.path.append("early-stopping-pytorch")
 import torch.distributed as dist
@@ -36,6 +37,7 @@ class Trainer:  # Added class_weight to the constructor
         rank=0,
         world_size=None,
         class_weight=None,
+        ordinal=False,  # Added
     ):  # Added
 
         self.optimizer = optimizer
@@ -49,11 +51,18 @@ class Trainer:  # Added class_weight to the constructor
         self.world_size = world_size
         self.num_classes = num_classes
         self.num_views = num_views
+        self.ordinal = ordinal  # Added
 
         if num_classes == 1:
             pos_weight = torch.tensor([pos_weight]) if pos_weight else None
             self.criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
             self.val_criterion = nn.BCEWithLogitsLoss()
+        elif self.ordinal:
+            # Added - CORN loss is computed by corn_loss() directly on raw
+            # logits, not via an nn.Module criterion. These two stay unused
+            # for the ordinal path but keep the object shape consistent.
+            self.criterion = None
+            self.val_criterion = None
         else:
             # Added - class_weight comes as a list from main
             class_weight = torch.tensor(class_weight, dtype=torch.float32) if class_weight is not None else None
@@ -155,7 +164,10 @@ class Trainer:  # Added class_weight to the constructor
                 # 2
                 outputs = self.net(inputs)
                 # 3
-                loss = self.criterion(outputs, labels)
+                if self.ordinal:  # Added
+                    loss = corn_loss(outputs, labels, self.num_classes)  # Added
+                else:  # Added
+                    loss = self.criterion(outputs, labels)
 
                 if self.l1_reg:
                     # Add L1 regularization to A
@@ -209,12 +221,21 @@ class Trainer:  # Added class_weight to the constructor
                         inputs = torch.split(inputs, split_size_or_sections=2, dim=1)
 
                     eval_outputs = self.net(inputs)
-                    eval_loss = self.val_criterion(eval_outputs, labels)
+                    if self.ordinal:  # Added
+                        eval_loss = corn_loss(eval_outputs, labels, self.num_classes)  # Added
+                    else:  # Added
+                        eval_loss = self.val_criterion(eval_outputs, labels)
                     running_loss_eval += eval_loss.item()
 
                     # for multi-class (patch)
                     if self.num_classes == 1:
                         predicted = torch.sigmoid(eval_outputs) > 0.5
+                    elif self.ordinal:  # Added
+                        if epoch == 0 and j == 0 and self.rank == 0:  # Added - one-time shape sanity check
+                            print(f"ordinal eval_outputs.shape={eval_outputs.shape} (expect (batch, {self.num_classes - 1}))")  # Added
+                        predicted = corn_label_from_logits(eval_outputs)  # Added
+                        probs = corn_probas_from_logits(eval_outputs, self.num_classes)  # Added
+                        y_probs = torch.cat((y_probs, probs.cpu()))  # Added
                     else:  # adding to be softmax because our classes are mutualy exclusive
                         _, predicted = torch.max(eval_outputs.data, 1)
                         probs = torch.softmax(eval_outputs, dim=1)  # Added
@@ -371,6 +392,10 @@ class Trainer:  # Added class_weight to the constructor
 
                 if self.num_classes == 1:
                     predicted = torch.sigmoid(eval_outputs) > 0.5
+                elif self.ordinal:  # Added
+                    predicted = corn_label_from_logits(eval_outputs)  # Added
+                    probs = corn_probas_from_logits(eval_outputs, self.num_classes)  # Added
+                    y_probs = torch.cat((y_probs, probs.cpu()))  # Added
                 else:  # for multi-class (patch)
                     _, predicted = torch.max(eval_outputs.data, 1)
                     probs = torch.softmax(eval_outputs, dim=1)  # Added
